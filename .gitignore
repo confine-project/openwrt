@@ -22,3 +22,4 @@
 *#
 .emacs.desktop*
 TAGS*~
+target/linux/x86/config-default
