@@ -102,7 +102,7 @@
 +	const void	*platform_data;
 +};
 +
-+#ifdef CONFIG_PHYLIB
++#ifndef CONFIG_PHYLIB
 +int mdiobus_register_board_info(struct mdio_board_info const *info, unsigned n);
 +#else
 +static inline int
