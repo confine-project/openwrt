@@ -1,0 +1,38 @@
+From 57d82d78af13eb2273cf8300a275a31f01b3c591 Mon Sep 17 00:00:00 2001
+From: Eric W. Biederman <ebiederm@xmission.com>
+Date: Mon, 14 Feb 2011 16:35:06 +0100
+Subject: [PATCH] ns proc: add support for the pid namespace
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+---
+ fs/proc/namespaces.c    |    3 +++
+ include/linux/proc_fs.h |    1 +
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+Index: linux-2.6.38.2/fs/proc/namespaces.c
+===================================================================
+--- linux-2.6.38.2.orig/fs/proc/namespaces.c	2011-03-29 03:18:08.000000000 +0200
++++ linux-2.6.38.2/fs/proc/namespaces.c	2011-03-29 03:18:08.000000000 +0200
+@@ -18,6 +18,9 @@
+ #ifdef CONFIG_NET_NS
+ 	&netns_operations,
+ #endif
++#ifdef CONFIG_PID_NS
++	&pidns_operations,
++#endif
+ #ifdef CONFIG_UTS_NS
+ 	&utsns_operations,
+ #endif
+Index: linux-2.6.38.2/include/linux/proc_fs.h
+===================================================================
+--- linux-2.6.38.2.orig/include/linux/proc_fs.h	2011-03-29 03:18:08.000000000 +0200
++++ linux-2.6.38.2/include/linux/proc_fs.h	2011-03-29 03:18:08.000000000 +0200
+@@ -264,6 +264,7 @@
+ };
+ extern const struct proc_ns_operations netns_operations;
+ extern const struct proc_ns_operations utsns_operations;
++extern const struct proc_ns_operations pidns_operations;
+ extern const struct proc_ns_operations ipcns_operations;
+ extern const struct proc_ns_operations mntns_operations;
+
