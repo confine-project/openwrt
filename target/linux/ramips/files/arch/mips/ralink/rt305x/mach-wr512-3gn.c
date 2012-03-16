@@ -18,9 +18,6 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/mtd/physmap.h>
 
 #include <asm/mach-ralink/machine.h>
 #include <asm/mach-ralink/dev-gpio-buttons.h>
@@ -42,49 +39,8 @@
 #define WR512_3GN_GPIO_BUTTON_WPS	0
 #define WR512_3GN_GPIO_BUTTON_WPS2	8
 
-#define WR512_3GN_BUTTONS_POLL_INTERVAL	20
-
-#ifdef CONFIG_MTD_PARTITIONS
-
-static struct mtd_partition wr512_3gn_partitions[] = {
-	{
-		.name	= "u-boot",
-		.offset	= 0,
-		.size	= 0x030000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "devdata",
-		.offset	= 0x030000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "devconf",
-		.offset	= 0x040000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "kernel",
-		.offset	= 0x050000,
-		.size	= 0x0d0000,
-	}, {
-		.name	= "rootfs",
-		.offset	= 0x120000,
-		.size	= 0x2e0000,
-	}, {
-		.name	= "firmware",
-		.offset	= 0x050000,
-		.size	= 0x3b0000,
-	}
-};
-
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data wr512_3gn_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(wr512_3gn_partitions),
-	.parts		= wr512_3gn_partitions,
-#endif
-};
+#define WR512_3GN_KEYS_POLL_INTERVAL	20
+#define WR512_3GN_KEYS_DEBOUNCE_INTERVAL (3 * WR512_3GN_KEYS_POLL_INTERVAL)
 
 static struct gpio_led wr512_3gn_leds_gpio[] __initdata = {
 	{
@@ -110,19 +66,19 @@ static struct gpio_led wr512_3gn_leds_gpio[] __initdata = {
 	}
 };
 
-static struct gpio_button wr512_3gn_gpio_buttons[] __initdata = {
+static struct gpio_keys_button wr512_3gn_gpio_buttons[] __initdata = {
 	{
 		.desc		= "reset_wps",
 		.type		= EV_KEY,
 		.code		= KEY_RESTART,
-		.threshold	= 3,
+		.debounce_interval = WR512_3GN_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= WR512_3GN_GPIO_BUTTON_RESET,
 		.active_low	= 1,
 	}, {
 		.desc		= "mode",
 		.type		= EV_KEY,
 		.code		= KEY_M,
-		.threshold	= 3,
+		.debounce_interval = WR512_3GN_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= WR512_3GN_GPIO_BUTTON_CONNECT,
 		.active_low	= 1,
 	}
@@ -136,12 +92,13 @@ static void __init wr512_3gn_init(void)
 {
 	rt305x_gpio_init(WR512_3GN_GPIO_MODE);
 
-	rt305x_register_flash(0, &wr512_3gn_flash_data);
+	rt305x_register_flash(0);
+
 	rt305x_esw_data.vlan_config = RT305X_ESW_VLAN_CONFIG_LLLLW;
 	rt305x_register_ethernet();
 	ramips_register_gpio_leds(-1, ARRAY_SIZE(wr512_3gn_leds_gpio),
 				  wr512_3gn_leds_gpio);
-	ramips_register_gpio_buttons(-1, WR512_3GN_BUTTONS_POLL_INTERVAL,
+	ramips_register_gpio_buttons(-1, WR512_3GN_KEYS_POLL_INTERVAL,
 				     ARRAY_SIZE(wr512_3gn_gpio_buttons),
 				     wr512_3gn_gpio_buttons);
 	rt305x_register_wifi();

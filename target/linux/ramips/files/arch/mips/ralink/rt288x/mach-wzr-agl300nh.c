@@ -30,7 +30,6 @@
  * mtd5: 00010000 00010000 "user_property"
  */
 
-#ifdef CONFIG_MTD_PARTITIONS
 static struct mtd_partition wzr_agl300nh_partitions[] = {
 	{
 		.name	= "uboot",
@@ -61,20 +60,15 @@ static struct mtd_partition wzr_agl300nh_partitions[] = {
 		.size	= 0x010000,
 	}
 };
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data wzr_agl300nh_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(wzr_agl300nh_partitions),
-	.parts		= wzr_agl300nh_partitions,
-#endif
-};
 
 static void __init wzr_agl300nh_init(void)
 {
 	rt288x_gpio_init(RT2880_GPIO_MODE_UART0);
 
-	rt288x_register_flash(0, &wzr_agl300nh_flash_data);
+	rt288x_flash0_data.nr_parts = ARRAY_SIZE(wzr_agl300nh_partitions);
+	rt288x_flash0_data.parts = wzr_agl300nh_partitions;
+	rt288x_register_flash(0);
+
 	rt288x_register_wifi();
 	rt288x_register_wdt();
 }

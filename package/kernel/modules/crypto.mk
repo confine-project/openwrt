@@ -29,7 +29,7 @@ define KernelPackage/crypto-core
 	CONFIG_CRYPTO_ALGAPI \
 	$(foreach mod,$(CRYPTO_MODULES),$(call crypto_confvar,$(mod)))
   FILES:=$(foreach mod,$(CRYPTO_MODULES),$(call crypto_file,$(mod)))
-  AUTOLOAD:=$(call AutoLoad,01,$(foreach mod,$(CRYPTO_MODULES),$(call crypto_name,$(mod))))
+  AUTOLOAD:=$(call AutoLoad,01,$(foreach mod,$(CRYPTO_MODULES),$(call crypto_name,$(mod))),1)
 endef
 $(eval $(call KernelPackage,crypto-core))
 
@@ -43,7 +43,7 @@ define KernelPackage/crypto-hash
   TITLE:=CryptoAPI hash support
   KCONFIG:=CONFIG_CRYPTO_HASH2
   FILES:=$(LINUX_DIR)/crypto/crypto_hash.ko
-  AUTOLOAD:=$(call AutoLoad,02,crypto_hash)
+  AUTOLOAD:=$(call AutoLoad,02,crypto_hash,1)
   $(call AddDepends/crypto)
 endef
 $(eval $(call KernelPackage,crypto-hash))
@@ -369,7 +369,6 @@ define KernelPackage/crypto-misc
 	$(LINUX_DIR)/crypto/cast6.ko \
 	$(LINUX_DIR)/crypto/fcrypt.ko \
 	$(LINUX_DIR)/crypto/khazad.ko \
-	$(LINUX_DIR)/crypto/serpent.ko \
 	$(LINUX_DIR)/crypto/sha256_generic.ko \
 	$(LINUX_DIR)/crypto/sha512_generic.ko \
 	$(LINUX_DIR)/crypto/tea.ko \
@@ -384,8 +383,14 @@ define KernelPackage/crypto-misc
   ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),le,3.1)),1)
     FILES += $(LINUX_DIR)/crypto/blowfish.ko
   else
-    FILES += $(LINUX_DIR)/crypto/blowfish_common.ko \
-    FILES += $(LINUX_DIR)/crypto/blowfish_generic.ko
+    FILES += \
+	$(LINUX_DIR)/crypto/blowfish_common.ko \
+	$(LINUX_DIR)/crypto/blowfish_generic.ko
+  endif
+  ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),le,3.2)),1)
+    FILES += $(LINUX_DIR)/crypto/serpent.ko
+  else
+    FILES += $(LINUX_DIR)/crypto/serpent_generic.ko
   endif
   $(call AddDepends/crypto)
 endef
@@ -400,7 +405,7 @@ $(eval $(call KernelPackage,crypto-misc))
 
 define KernelPackage/crypto-ocf
   TITLE:=OCF modules
-  DEPENDS:=+@OPENSSL_ENGINE @!TARGET_uml +kmod-crypto-manager @!LINUX_3_2||BROKEN
+  DEPENDS:=+@OPENSSL_ENGINE @!TARGET_uml +kmod-crypto-manager
   KCONFIG:= \
 	CONFIG_OCF_OCF \
 	CONFIG_OCF_CRYPTODEV \

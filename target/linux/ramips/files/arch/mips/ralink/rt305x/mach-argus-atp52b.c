@@ -11,9 +11,6 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/mtd/physmap.h>
 
 #include <asm/mach-ralink/machine.h>
 #include <asm/mach-ralink/dev-gpio-buttons.h>
@@ -27,27 +24,28 @@
 #define ARGUS_ATP52B_GPIO_LED_NET		13
 #define ARGUS_ATP52B_GPIO_BUTTON_WPS		0
 #define ARGUS_ATP52B_GPIO_BUTTON_RESET		10
-#define ARGUS_ATP52B_BUTTONS_POLL_INTERVAL	20
+#define ARGUS_ATP52B_KEYS_POLL_INTERVAL		20
+#define ARGUS_ATP52B_KEYS_DEBOUNCE_INTERVAL	(3 * ARGUS_ATP52B_KEYS_POLL_INTERVAL)
 
 static struct gpio_led argus_atp52b_leds_gpio[] __initdata = {
 	{
-		.name       = "argus_atp52b:green:run",
+		.name       = "argus-atp52b:green:run",
 		.gpio       = ARGUS_ATP52B_GPIO_LED_RUN,
 		.active_low = 1,
 	},
 	{
-		.name       = "argus_atp52b:amber:net",
+		.name       = "argus-atp52b:amber:net",
 		.gpio       = ARGUS_ATP52B_GPIO_LED_NET,
 		.active_low = 1,
 	}
 };
 
-static struct gpio_button argus_atp52b_gpio_buttons[] __initdata = {
+static struct gpio_keys_button argus_atp52b_gpio_buttons[] __initdata = {
 	{
 		.desc       = "wps",
 		.type       = EV_KEY,
 		.code       = KEY_WPS_BUTTON,
-		.threshold  = 3,
+		.debounce_interval = ARGUS_ATP52B_KEYS_DEBOUNCE_INTERVAL,
 		.gpio       = ARGUS_ATP52B_GPIO_BUTTON_WPS,
 		.active_low = 1,
 	},
@@ -55,55 +53,21 @@ static struct gpio_button argus_atp52b_gpio_buttons[] __initdata = {
 		.desc       = "reset",
 		.type       = EV_KEY,
 		.code       = KEY_RESTART,
-		.threshold  = 10,
+		.debounce_interval = ARGUS_ATP52B_KEYS_DEBOUNCE_INTERVAL,
 		.gpio       = ARGUS_ATP52B_GPIO_BUTTON_RESET,
 		.active_low = 1,
 	}
 };
 
-#ifdef CONFIG_MTD_PARTITIONS
-static struct mtd_partition argus_atp52b_partitions[] = {
-	{
-		.name	= "bootloader",
-		.offset	= 0,
-		.size	= 0x030000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "config",
-		.offset	= 0x030000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "factory",
-		.offset	= 0x040000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "kernel",
-		.offset	= 0x050000,
-		.size	= 0x120000,
-	}, {
-		.name	= "rootfs",
-		.offset	= 0x170000,
-		.size	= 0x680000,
-	}
-};
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data argus_atp52b_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(argus_atp52b_partitions),
-	.parts		= argus_atp52b_partitions,
-#endif
-};
-
 static void __init argus_atp52b_init(void)
 {
 	rt305x_gpio_init(RT305X_GPIO_MODE_GPIO << RT305X_GPIO_MODE_UART0_SHIFT);
-	rt305x_register_flash(0, &argus_atp52b_flash_data);
+
+	rt305x_register_flash(0);
+
 	ramips_register_gpio_leds(-1, ARRAY_SIZE(argus_atp52b_leds_gpio),
 					argus_atp52b_leds_gpio);
-	ramips_register_gpio_buttons(-1, ARGUS_ATP52B_BUTTONS_POLL_INTERVAL,
+	ramips_register_gpio_buttons(-1, ARGUS_ATP52B_KEYS_POLL_INTERVAL,
 					ARRAY_SIZE(argus_atp52b_gpio_buttons),
 					argus_atp52b_gpio_buttons);
 	rt305x_esw_data.vlan_config = RT305X_ESW_VLAN_CONFIG_WLLLL;

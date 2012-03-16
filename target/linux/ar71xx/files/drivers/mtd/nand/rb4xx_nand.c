@@ -12,6 +12,8 @@
  *  by the Free Software Foundation.
  */
 
+#include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/init.h>
 #include <linux/mtd/nand.h>
 #include <linux/mtd/mtd.h>
@@ -22,8 +24,8 @@
 #include <linux/gpio.h>
 #include <linux/slab.h>
 
-#include <asm/mach-ar71xx/ar71xx.h>
-#include <asm/mach-ar71xx/rb4xx_cpld.h>
+#include <asm/mach-ath79/ath79.h>
+#include <asm/mach-ath79/rb4xx_cpld.h>
 
 #define DRV_NAME        "rb4xx-nand"
 #define DRV_VERSION     "0.2.0"
@@ -134,7 +136,7 @@ static void rb4xx_nand_read_buf(struct mtd_info *mtd, unsigned char *buf,
 		pr_err("rb4xx_nand: read buf failed, err=%d\n", err);
 }
 
-static int __init rb4xx_nand_probe(struct platform_device *pdev)
+static int __devinit rb4xx_nand_probe(struct platform_device *pdev)
 {
 	struct rb4xx_nand_info	*info;
 	int ret;
@@ -223,7 +225,7 @@ static int __init rb4xx_nand_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, info);
 
-	ret = nand_scan_ident(&info->mtd, 1);
+	ret = nand_scan_ident(&info->mtd, 1, NULL);
 	if (ret) {
 		ret = -ENXIO;
 		goto err_free_info;
@@ -238,12 +240,8 @@ static int __init rb4xx_nand_probe(struct platform_device *pdev)
 		goto err_set_drvdata;
 	}
 
-#ifdef CONFIG_MTD_PARTITIONS
-	ret = add_mtd_partitions(&info->mtd, rb4xx_nand_partitions,
+	mtd_device_register(&info->mtd, rb4xx_nand_partitions,
 				ARRAY_SIZE(rb4xx_nand_partitions));
-#else
-	ret = add_mtd_device(&info->mtd);
-#endif
 	if (ret)
 		goto err_release_nand;
 

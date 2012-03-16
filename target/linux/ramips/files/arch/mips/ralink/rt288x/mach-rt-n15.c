@@ -10,9 +10,6 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/mtd/physmap.h>
 #include <linux/rtl8366.h>
 #include <linux/ethtool.h>
 
@@ -32,47 +29,8 @@
 #define RT_N15_GPIO_RTL8366_SCK		2
 #define RT_N15_GPIO_RTL8366_SDA		1
 
-#define RT_N15_BUTTONS_POLL_INTERVAL	20
-
-#ifdef CONFIG_MTD_PARTITIONS
-static struct mtd_partition rt_n15_partitions[] = {
-	{
-		.name	= "u-boot",
-		.offset	= 0,
-		.size	= 0x030000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "u-boot-env",
-		.offset	= 0x030000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "factory",
-		.offset	= 0x040000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "kernel",
-		.offset	= 0x050000,
-		.size	= 0x0b0000,
-	}, {
-		.name	= "rootfs",
-		.offset	= 0x100000,
-		.size	= 0x300000,
-	}, {
-		.name	= "firmware",
-		.offset	= 0x050000,
-		.size	= 0x3b0000,
-	}
-};
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data rt_n15_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(rt_n15_partitions),
-	.parts		= rt_n15_partitions,
-#endif
-};
+#define RT_N15_KEYS_POLL_INTERVAL	20
+#define RT_N15_KEYS_DEBOUNCE_INTERVAL	(3 * RT_N15_KEYS_POLL_INTERVAL)
 
 static struct gpio_led rt_n15_leds_gpio[] __initdata = {
 	{
@@ -82,19 +40,19 @@ static struct gpio_led rt_n15_leds_gpio[] __initdata = {
 	}
 };
 
-static struct gpio_button rt_n15_gpio_buttons[] __initdata = {
+static struct gpio_keys_button rt_n15_gpio_buttons[] __initdata = {
 	{
 		.desc		= "reset",
 		.type		= EV_KEY,
 		.code		= KEY_RESTART,
-		.threshold	= 3,
+		.debounce_interval = RT_N15_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= RT_N15_GPIO_BUTTON_RESET,
 		.active_low	= 1,
 	}, {
 		.desc		= "wps",
 		.type		= EV_KEY,
 		.code		= KEY_WPS_BUTTON,
-		.threshold	= 3,
+		.debounce_interval = RT_N15_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= RT_N15_GPIO_BUTTON_WPS,
 		.active_low	= 1,
 	}
@@ -117,12 +75,12 @@ static void __init rt_n15_init(void)
 {
 	rt288x_gpio_init(RT2880_GPIO_MODE_UART0 | RT2880_GPIO_MODE_I2C);
 
-	rt288x_register_flash(0, &rt_n15_flash_data);
+	rt288x_register_flash(0);
 
 	ramips_register_gpio_leds(-1, ARRAY_SIZE(rt_n15_leds_gpio),
 				  rt_n15_leds_gpio);
 
-	ramips_register_gpio_buttons(-1, RT_N15_BUTTONS_POLL_INTERVAL,
+	ramips_register_gpio_buttons(-1, RT_N15_KEYS_POLL_INTERVAL,
 				     ARRAY_SIZE(rt_n15_gpio_buttons),
 				     rt_n15_gpio_buttons);
 

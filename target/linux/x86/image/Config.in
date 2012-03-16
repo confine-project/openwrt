@@ -47,6 +47,13 @@ config X86_GRUB_BOOTOPTS
 	help
 	  If you don't know, just leave it blank.
 
+config X86_GRUB_TIMEOUT
+	string "Seconds to wait before booting the default entry"
+	depends X86_GRUB_IMAGES
+	default "5"
+	help
+	  If you don't know, 5 seconds is a reasonable default.
+
 config X86_VDI_IMAGES
 	bool "Build VirtualBox image files (VDI)"
 	depends X86_GRUB_IMAGES
@@ -71,6 +78,10 @@ config OLPC_BOOTSCRIPT_IMAGES
 config TARGET_IMAGES_PAD
 	bool "Pad images to filesystem size (for JFFS2)"
 	depends OLPC_BOOTSCRIPT_IMAGES || X86_GRUB_IMAGES
+
+config TARGET_IMAGES_GZIP
+	bool "GZip images"
+	depends TARGET_IMAGES_PAD || TARGET_ROOTFS_EXT4FS
 	default y
 
 config TARGET_KERNEL_PARTSIZE

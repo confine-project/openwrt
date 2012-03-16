@@ -1,5 +1,5 @@
 # 
-# Copyright (C) 2006-2010 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -30,6 +30,8 @@ ifneq ($(GRUB_TERMINALS),)
 endif
 
 ROOTPART:=$(call qstrip,$(CONFIG_TARGET_ROOTFS_PARTNAME))
+
+GRUB_TIMEOUT:=$(call qstrip,$(CONFIG_X86_GRUB_TIMEOUT))
 
 ifneq ($(CONFIG_X86_GRUB_IMAGES),)
 
@@ -64,6 +66,7 @@ ifneq ($(CONFIG_X86_GRUB_IMAGES),)
 		-e 's#@SERIAL_CONFIG@#$(strip $(GRUB_SERIAL_CONFIG))#g' \
 		-e 's#@TERMINAL_CONFIG@#$(strip $(GRUB_TERMINAL_CONFIG))#g' \
 		-e 's#@CMDLINE@#$(strip $(call Image/cmdline/$(1)) $(BOOTOPTS) $(GRUB_CONSOLE_CMDLINE))#g' \
+		-e 's#@TIMEOUT@#$(GRUB_TIMEOUT)#g' \
 		./menu.lst > $(KDIR)/root.grub/boot/grub/menu.lst
 	PADDING="$(CONFIG_TARGET_IMAGES_PAD)" PATH="$(TARGET_PATH)" ./gen_image_x86.sh \
 		$(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img \
@@ -164,6 +167,28 @@ ifneq ($(CONFIG_X86_VMDK_IMAGES),)
   endef
 endif
 
+define Image/Build/gzip
+	gzip -f9 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
+	gzip -f9 $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
+endef
+
+ifneq ($(CONFIG_TARGET_IMAGES_GZIP),)
+  define Image/Build/gzip/ext4
+	$(call Image/Build/gzip,ext4)
+  endef
+  ifneq ($(CONFIG_TARGET_IMAGES_PAD),)
+    define Image/Build/gzip/squashfs
+	$(call Image/Build/gzip,squashfs)
+    endef
+    define Image/Build/gzip/jffs2-64k
+	$(call Image/Build/gzip,jffs2-64k)
+    endef
+    define Image/Build/gzip/jffs2-128k
+	$(call Image/Build/gzip,jffs2-128k)
+    endef
+  endif
+endif
+
 define Image/BuildKernel
 	$(CP) $(KDIR)/bzImage $(BIN_DIR)/$(IMG_PREFIX)-vmlinuz
   ifneq ($(CONFIG_X86_ETHERBOOT_IMAGES),)
@@ -191,10 +216,7 @@ define Image/Build
   endif
 	$(CP) $(KDIR)/root.$(1) $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
 	$(CP) $(KDIR)/bzImage $(BIN_DIR)/$(IMG_PREFIX)-vmlinuz
-  ifneq (,$findstring($(1),ext4 jffs2))
-	gzip -f9 $(BIN_DIR)/$(IMG_PREFIX)-combined-$(1).img
-	gzip -f9 $(BIN_DIR)/$(IMG_PREFIX)-rootfs-$(1).img
-  endif
+	$(call Image/Build/gzip/$(1))
 endef
 
 $(eval $(call BuildImage))

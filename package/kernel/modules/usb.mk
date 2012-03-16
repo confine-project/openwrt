@@ -16,8 +16,15 @@ define KernelPackage/usb-core
   TITLE:=Support for USB
   DEPENDS:=@USB_SUPPORT
   KCONFIG:=CONFIG_USB CONFIG_XPS_USB_HCD_XILINX=n CONFIG_USB_FHCI_HCD=n
-  FILES:=$(LINUX_DIR)/drivers/usb/core/usbcore.ko
-  AUTOLOAD:=$(call AutoLoad,20,usbcore,1)
+  ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.2)),1)
+    FILES:= \
+	$(LINUX_DIR)/drivers/usb/core/usbcore.ko \
+	$(LINUX_DIR)/drivers/usb/usb-common.ko
+    AUTOLOAD:=$(call AutoLoad,20,usb-common usbcore,1)
+  else
+    FILES:=$(LINUX_DIR)/drivers/usb/core/usbcore.ko
+    AUTOLOAD:=$(call AutoLoad,20,usbcore,1)
+  endif
   $(call AddDepends/nls)
 endef
 
@@ -88,10 +95,13 @@ $(eval $(call KernelPackage,usb-uhci,1))
 
 define KernelPackage/usb-ohci
   TITLE:=Support for OHCI controllers
+  DEPENDS:=+TARGET_brcm47xx:kmod-usb-brcm47xx
   KCONFIG:= \
 	CONFIG_USB_OHCI \
 	CONFIG_USB_OHCI_HCD \
-	CONFIG_USB_OHCI_AR71XX=y \
+	CONFIG_USB_OHCI_ATH79=y \
+	CONFIG_USB_OHCI_BCM63XX=y \
+	CONFIG_USB_OHCI_RT3883=y \
 	CONFIG_USB_OCTEON_OHCI=y
   FILES:=$(LINUX_DIR)/drivers/usb/host/ohci-hcd.ko
   AUTOLOAD:=$(call AutoLoad,50,ohci-hcd,1)
@@ -199,8 +209,11 @@ $(eval $(call KernelPackage,usb-isp116x-hcd))
 
 define KernelPackage/usb2
   TITLE:=Support for USB2 controllers
+  DEPENDS:=+TARGET_brcm47xx:kmod-usb-brcm47xx
   KCONFIG:=CONFIG_USB_EHCI_HCD \
-    CONFIG_USB_EHCI_AR71XX=y \
+    CONFIG_USB_EHCI_ATH79=y \
+    CONFIG_USB_EHCI_BCM63XX=y \
+    CONFIG_USB_EHCI_RT3883=y \
     CONFIG_USB_OCTEON_EHCI=y \
     CONFIG_USB_EHCI_FSL=n
   FILES:=$(LINUX_DIR)/drivers/usb/host/ehci-hcd.ko
@@ -352,6 +365,21 @@ define KernelPackage/usb-serial-ftdi/description
 endef
 
 $(eval $(call KernelPackage,usb-serial-ftdi))
+
+
+define KernelPackage/usb-serial-ti-usb
+  TITLE:=Support for TI USB 3410/5052
+  KCONFIG:=CONFIG_USB_SERIAL_TI
+  FILES:=$(LINUX_DIR)/drivers/usb/serial/ti_usb_3410_5052.ko
+  AUTOLOAD:=$(call AutoLoad,65,ti_usb_3410_5052)
+  $(call AddDepends/usb-serial)
+endef
+
+define KernelPackage/usb-serial-ti-usb/description
+ Kernel support for TI USB 3410/5052 devices
+endef
+
+$(eval $(call KernelPackage,usb-serial-ti-usb))
 
 
 define KernelPackage/usb-serial-ipw
@@ -968,3 +996,20 @@ define KernelPackage/usb-rt305x-dwc_otg/description
 endef
 
 $(eval $(call KernelPackage,usb-rt305x-dwc_otg))
+
+define KernelPackage/usb-brcm47xx
+  SUBMENU:=$(USB_MENU)
+  TITLE:=Support for USB on bcm47xx
+  DEPENDS:=@USB_SUPPORT @TARGET_brcm47xx
+  KCONFIG:= \
+  	CONFIG_USB_HCD_BCMA \
+  	CONFIG_USB_HCD_SSB
+  FILES:= \
+  	$(LINUX_DIR)/drivers/usb/host/bcma-hcd.ko \
+  	$(LINUX_DIR)/drivers/usb/host/ssb-hcd.ko
+  AUTOLOAD:=$(call AutoLoad,19,bcma-hcd ssb-hcd,1)
+  $(call AddDepends/usb)
+endef
+
+$(eval $(call KernelPackage,usb-brcm47xx))
+

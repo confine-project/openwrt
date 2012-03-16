@@ -30,6 +30,9 @@ status_led_off() {
 
 get_status_led() {
 	case $(ar71xx_board_name) in
+	alfa-nx)
+		status_led="alfa:green:led_8"
+		;;
 	ap81)
 		status_led="ap81:green:status"
 		;;
@@ -45,17 +48,24 @@ get_status_led() {
 	bullet-m | rocket-m | nano-m | nanostation-m)
 		status_led="ubnt:green:link4"
 		;;
-	dir-600-a1)
-		status_led="dir-600-a1:green:power"
+	db120)
+		status_led="db120:green:status"
+		;;
+	dir-600-a1 |\
+	dir-615-e4)
+		status_led="d-link:green:power"
 		;;
 	dir-615-c1)
-		status_led="dir-615c1:green:status"
+		status_led="d-link:green:status"
 		;;
 	dir-825-b1)
-		status_led="dir825b1:orange:power"
+		status_led="d-link:orange:power"
 		;;
 	eap7660d)
 		status_led="eap7660d:green:ds4"
+		;;
+	hornet-ub)
+		status_led="alfa:blue:wps"
 		;;
 	ja76pf)
 		status_led="ja76pf:green:led1"
@@ -82,8 +92,17 @@ get_status_led() {
 	routerstation | routerstation-pro)
 		status_led="ubnt:green:rf"
 		;;
+	rw2458n)
+		status_led="rw2458n:green:d3"
+		;;
 	tew-632brp)
 		status_led="tew-632brp:green:status"
+		;;
+	tew-673gru)
+		status_led="trendnet:blue:wps"
+		;;
+	tl-mr3020)
+		status_led="tp-link:green:wps"
 		;;
 	tl-mr3220 | \
 	tl-mr3420 | \
@@ -93,11 +112,15 @@ get_status_led() {
 	tl-wr741nd | \
 	tl-wr741nd-v4 | \
 	tl-wr841n-v1 | \
+	tl-wr841n-v7 | \
 	tl-wr941nd)
 		status_led="tp-link:green:system"
 		;;
 	tl-wr703n)
 		status_led="tp-link:blue:system"
+		;;
+	tl-wr2543n)
+		status_led="tp-link:green:wps"
 		;;
 	unifi)
 		status_led="ubnt:green:dome"
@@ -108,7 +131,10 @@ get_status_led() {
 	wzr-hp-g300nh)
 		status_led="buffalo:green:router"
 		;;
-	wndr3700 | wndr3700v2)
+	wzr-hp-g300nh2)
+		status_led="buffalo:red:diag"
+		;;
+	wndr3700)
 		status_led="wndr3700:green:power"
 		;;
 	wnr2000)
@@ -118,7 +144,7 @@ get_status_led() {
 		status_led="wp543:green:diag"
 		;;
 	wrt400n)
-		status_led="wrt400n:green:status"
+		status_led="wrt400n:blue:wps"
 		;;
 	wrt160nl)
 		status_led="wrt160nl:blue:wps"

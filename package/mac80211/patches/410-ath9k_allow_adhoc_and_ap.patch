@@ -1,6 +1,6 @@
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -1486,15 +1486,6 @@ static int ath9k_add_interface(struct ie
+@@ -1432,15 +1432,6 @@ static int ath9k_add_interface(struct ie
  		}
  	}
  
@@ -13,10 +13,10 @@
 -		goto out;
 -	}
 -
- 	ath_dbg(common, ATH_DBG_CONFIG,
- 		"Attach a VIF of type: %d\n", vif->type);
+ 	ath_dbg(common, CONFIG, "Attach a VIF of type: %d\n", vif->type);
  
-@@ -1520,15 +1511,6 @@ static int ath9k_change_interface(struct
+ 	sc->nvifs++;
+@@ -1465,15 +1456,6 @@ static int ath9k_change_interface(struct
  	mutex_lock(&sc->mutex);
  	ath9k_ps_wakeup(sc);
  

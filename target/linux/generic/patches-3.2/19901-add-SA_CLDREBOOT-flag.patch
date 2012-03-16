@@ -1,0 +1,362 @@
+From ccf858fb5f9ba7cea98d1dff9f04a4d975e4dc91 Mon Sep 17 00:00:00 2001
+From: Daniel Lezcano <daniel.lezcano@free.fr>
+Date: Mon, 14 Feb 2011 16:35:04 +0100
+Subject: [PATCH] add SA_CLDREBOOT flag
+
+Add the SA_CLDREBOOT flag to enable the CLD_REBOOT on SIGCHLD
+when a process of a pid namespace calls the reboot syscall.
+
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+---
+ arch/alpha/include/asm/signal.h   |    2 ++
+ arch/arm/include/asm/signal.h     |    2 ++
+ arch/avr32/include/asm/signal.h   |    2 ++
+ arch/cris/include/asm/signal.h    |    2 ++
+ arch/h8300/include/asm/signal.h   |    2 ++
+ arch/ia64/include/asm/signal.h    |    2 ++
+ arch/m32r/include/asm/signal.h    |    2 ++
+ arch/m68k/include/asm/signal.h    |    2 ++
+ arch/mips/include/asm/signal.h    |    2 ++
+ arch/mn10300/include/asm/signal.h |    2 ++
+ arch/parisc/include/asm/signal.h  |    2 ++
+ arch/powerpc/include/asm/signal.h |    2 ++
+ arch/s390/include/asm/signal.h    |    2 ++
+ arch/sparc/include/asm/signal.h   |    2 +-
+ arch/x86/include/asm/signal.h     |    2 ++
+ arch/xtensa/include/asm/signal.h  |    2 ++
+ include/asm-generic/signal.h      |    2 ++
+ 17 files changed, 33 insertions(+), 1 deletions(-)
+
+Index: linux-2.6.38.2/arch/alpha/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/alpha/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/alpha/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -82,6 +82,7 @@
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  *
+  * SA_ONESHOT and SA_NOMASK are the historical Linux names for the Single
+  * Unix names RESETHAND and NODEFER respectively.
+@@ -94,6 +95,7 @@
+ #define SA_RESETHAND	0x00000010
+ #define SA_NOCLDWAIT	0x00000020
+ #define SA_SIGINFO	0x00000040
++#define SA_CLDREBOOT    0x00000080
+ 
+ #define SA_ONESHOT	SA_RESETHAND
+ #define SA_NOMASK	SA_NODEFER
+Index: linux-2.6.38.2/arch/arm/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/arm/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/arm/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -78,6 +78,7 @@
+  * SA_NOCLDSTOP		flag to turn off SIGCHLD when children stop.
+  * SA_NOCLDWAIT		flag on SIGCHLD to inhibit zombies.
+  * SA_SIGINFO		deliver the signal with SIGINFO structs
++ * SA_CLDREBOOT         flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_THIRTYTWO		delivers the signal in 32-bit mode, even if the task 
+  *			is running in 26-bit.
+  * SA_ONSTACK		allows alternate signal stacks (see sigaltstack(2)).
+@@ -91,6 +92,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_THIRTYTWO	0x02000000
+ #define SA_RESTORER	0x04000000
+ #define SA_ONSTACK	0x08000000
+Index: linux-2.6.38.2/arch/avr32/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/avr32/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/avr32/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -83,6 +83,7 @@
+  * SA_NOCLDSTOP		flag to turn off SIGCHLD when children stop.
+  * SA_NOCLDWAIT		flag on SIGCHLD to inhibit zombies.
+  * SA_SIGINFO		deliver the signal with SIGINFO structs
++ * SA_CLDREBOOT         flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_ONSTACK		indicates that a registered stack_t will be used.
+  * SA_RESTART		flag to get restarting signals (which were the default long ago)
+  * SA_NODEFER		prevents the current signal from being masked in the handler.
+@@ -94,6 +95,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_RESTORER	0x04000000
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+Index: linux-2.6.38.2/arch/cris/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/cris/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/cris/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -76,6 +76,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -87,6 +88,7 @@
+ #define SA_NOCLDSTOP	0x00000001u
+ #define SA_NOCLDWAIT	0x00000002u
+ #define SA_SIGINFO	0x00000004u
++#define SA_CLDREBOOT    0x00000008u
+ #define SA_ONSTACK	0x08000000u
+ #define SA_RESTART	0x10000000u
+ #define SA_NODEFER	0x40000000u
+Index: linux-2.6.38.2/arch/h8300/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/h8300/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/h8300/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -76,6 +76,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT         flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -86,6 +87,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002 /* not supported yet */
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+ #define SA_NODEFER	0x40000000
+Index: linux-2.6.38.2/arch/ia64/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/ia64/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/ia64/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -58,6 +58,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -68,6 +69,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+ #define SA_NODEFER	0x40000000
+Index: linux-2.6.38.2/arch/m32r/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/m32r/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/m32r/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -78,6 +78,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT         flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -88,6 +89,7 @@
+ #define SA_NOCLDSTOP	0x00000001u
+ #define SA_NOCLDWAIT	0x00000002u
+ #define SA_SIGINFO	0x00000004u
++#define SA_CLDREBOOT    0x00000008u
+ #define SA_ONSTACK	0x08000000u
+ #define SA_RESTART	0x10000000u
+ #define SA_NODEFER	0x40000000u
+Index: linux-2.6.38.2/arch/m68k/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/m68k/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/m68k/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -76,6 +76,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -86,6 +87,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+ #define SA_NODEFER	0x40000000
+Index: linux-2.6.38.2/arch/mips/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/mips/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/mips/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -66,6 +66,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -80,6 +81,7 @@
+ #define SA_NODEFER	0x40000000
+ #define SA_NOCLDWAIT	0x00010000
+ #define SA_NOCLDSTOP	0x00000001
++#define SA_CLDREBOOT    0x00000002
+ 
+ #define SA_NOMASK	SA_NODEFER
+ #define SA_ONESHOT	SA_RESETHAND
+Index: linux-2.6.38.2/arch/mn10300/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/mn10300/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/mn10300/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -86,6 +86,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -96,6 +97,7 @@
+ #define SA_NOCLDSTOP	0x00000001U
+ #define SA_NOCLDWAIT	0x00000002U
+ #define SA_SIGINFO	0x00000004U
++#define SA_CLDREBOOT    0x00000008U
+ #define SA_ONSTACK	0x08000000U
+ #define SA_RESTART	0x10000000U
+ #define SA_NODEFER	0x40000000U
+Index: linux-2.6.38.2/arch/parisc/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/parisc/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/parisc/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -50,6 +50,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT         flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -58,6 +59,7 @@
+  * Unix names RESETHAND and NODEFER respectively.
+  */
+ #define SA_ONSTACK	0x00000001
++#define SA_CLDREBOOT    0x00000002
+ #define SA_RESETHAND	0x00000004
+ #define SA_NOCLDSTOP	0x00000008
+ #define SA_SIGINFO	0x00000010
+Index: linux-2.6.38.2/arch/powerpc/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/powerpc/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/powerpc/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -65,6 +65,7 @@
+  * SA_ONSTACK is not currently supported, but will allow sigaltstack(2).
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -75,6 +76,7 @@
+ #define SA_NOCLDSTOP	0x00000001U
+ #define SA_NOCLDWAIT	0x00000002U
+ #define SA_SIGINFO	0x00000004U
++#define SA_CLDREBOOT    0x00000008U
+ #define SA_ONSTACK	0x08000000U
+ #define SA_RESTART	0x10000000U
+ #define SA_NODEFER	0x40000000U
+Index: linux-2.6.38.2/arch/s390/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/s390/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/s390/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -86,6 +86,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT  flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -96,6 +97,7 @@
+ #define SA_NOCLDSTOP    0x00000001
+ #define SA_NOCLDWAIT    0x00000002
+ #define SA_SIGINFO      0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_ONSTACK      0x08000000
+ #define SA_RESTART      0x10000000
+ #define SA_NODEFER      0x40000000
+Index: linux-2.6.38.2/arch/sparc/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/sparc/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/sparc/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -146,7 +146,7 @@
+ #define SA_NOMASK	0x20u
+ #define SA_NOCLDWAIT    0x100u
+ #define SA_SIGINFO      0x200u
+-
++#define SA_CLDREBOOT    0x400u
+ 
+ #define SIG_BLOCK          0x01	/* for blocking signals */
+ #define SIG_UNBLOCK        0x02	/* for unblocking signals */
+Index: linux-2.6.38.2/arch/x86/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/x86/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/x86/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -90,6 +90,7 @@
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+  *
+  * SA_ONESHOT and SA_NOMASK are the historical Linux names for the Single
+@@ -98,6 +99,7 @@
+ #define SA_NOCLDSTOP	0x00000001u
+ #define SA_NOCLDWAIT	0x00000002u
+ #define SA_SIGINFO	0x00000004u
++#define SA_CLDREBOOT    0x00000008u
+ #define SA_ONSTACK	0x08000000u
+ #define SA_RESTART	0x10000000u
+ #define SA_NODEFER	0x40000000u
+Index: linux-2.6.38.2/arch/xtensa/include/asm/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/arch/xtensa/include/asm/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/arch/xtensa/include/asm/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -77,6 +77,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_CLDREBOOT flag to turn on SIGCHLD when pid namespace calls reboot
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -87,6 +88,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002 /* not supported yet */
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000008
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+ #define SA_NODEFER	0x40000000
+Index: linux-2.6.38.2/include/asm-generic/signal.h
+===================================================================
+--- linux-2.6.38.2.orig/include/asm-generic/signal.h	2011-03-29 03:17:23.000000000 +0200
++++ linux-2.6.38.2/include/asm-generic/signal.h	2011-03-29 03:17:46.000000000 +0200
+@@ -57,6 +57,7 @@
+  * SA_ONSTACK indicates that a registered stack_t will be used.
+  * SA_RESTART flag to get restarting signals (which were the default long ago)
+  * SA_NOCLDSTOP flag to turn off SIGCHLD when children stop.
++ * SA_REBOOT flag to turn on SIGCHLD when pid namespace reboots
+  * SA_RESETHAND clears the handler when the signal is delivered.
+  * SA_NOCLDWAIT flag on SIGCHLD to inhibit zombies.
+  * SA_NODEFER prevents the current signal from being masked in the handler.
+@@ -67,6 +68,7 @@
+ #define SA_NOCLDSTOP	0x00000001
+ #define SA_NOCLDWAIT	0x00000002
+ #define SA_SIGINFO	0x00000004
++#define SA_CLDREBOOT    0x00000004
+ #define SA_ONSTACK	0x08000000
+ #define SA_RESTART	0x10000000
+ #define SA_NODEFER	0x40000000

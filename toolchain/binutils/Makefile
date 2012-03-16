@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -23,7 +23,10 @@ ifeq ($(PKG_VERSION),2.21)
   PKG_MD5SUM:=c84c5acc9d266f1a7044b51c85a823f5
 endif
 ifeq ($(PKG_VERSION),2.21.1)
-  PKG_MD5SUM:=a22801a9cad45c85e9ff6afc10537d72
+  PKG_MD5SUM:=bde820eac53fa3a8d8696667418557ad
+endif
+ifeq ($(PKG_VERSION),2.22)
+  PKG_MD5SUM:=ee0f10756c84979622b992a4a61ea3f5
 endif
 
 PATCH_DIR:=./patches/$(PKG_VERSION)

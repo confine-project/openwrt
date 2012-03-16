@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -25,6 +25,7 @@ endif
 PATCH_DIR:=./patches-$(PKG_VERSION)
 CONFIG_DIR:=./config-$(PKG_VERSION)
 
+PKG_MD5SUM_0.9.33 = cf9d25e4b3c87af1a99d33a6b959fbf1
 PKG_MD5SUM=$(PKG_MD5SUM_$(PKG_VERSION))
 
 HOST_BUILD_DIR:=$(BUILD_DIR_TOOLCHAIN)/$(PKG_NAME)-$(PKG_VERSION)
@@ -78,6 +79,7 @@ define Host/Prepare
 		-e 's,^.*UCLIBC_HAS_FPU.*,UCLIBC_HAS_FPU=$(if $(CONFIG_SOFT_FLOAT),n,y),g' \
 		-e 's,^.*UCLIBC_HAS_SOFT_FLOAT.*,UCLIBC_HAS_SOFT_FLOAT=$(if $(CONFIG_SOFT_FLOAT),y,n),g' \
 		-e 's,^.*UCLIBC_HAS_SHADOW.*,UCLIBC_HAS_SHADOW=$(if $(CONFIG_SHADOW_PASSWORDS),y,n),g' \
+		-e 's,^.*UCLIBC_HAS_LOCALE.*,UCLIBC_HAS_LOCALE=$(if $(CONFIG_BUILD_NLS),y,n),g' \
 		$(HOST_BUILD_DIR)/.config
 	$(MAKE) -C $(HOST_BUILD_DIR) oldconfig KBUILD_HAVE_NLS= HOSTCFLAGS="-DKBUILD_NO_NLS"
 	$(MAKE) -C $(HOST_BUILD_DIR)/extra/config conf KBUILD_HAVE_NLS= HOSTCFLAGS="-DKBUILD_NO_NLS"

@@ -130,7 +130,7 @@ $(eval $(call KernelPackage,swconfig))
 define KernelPackage/mvswitch
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Marvell 88E6060 switch support
-  DEPENDS:=+kmod-swconfig @!LINUX_3_1&&!LINUX_3_2||BROKEN
+  DEPENDS:=+kmod-swconfig @!LINUX_3_1&&!LINUX_3_2&&!LINUX_3_3||BROKEN
   KCONFIG:=CONFIG_MVSWITCH_PHY
   FILES:=$(LINUX_DIR)/drivers/net/phy/mvswitch.ko
   AUTOLOAD:=$(call AutoLoad,41,mvswitch)
@@ -157,6 +157,51 @@ endef
 
 $(eval $(call KernelPackage,switch-ip17xx))
 
+define KernelPackage/switch-rtl8366-smi
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8366 SMI switch interface support
+  DEPENDS:=@GPIO_SUPPORT +kmod-swconfig
+  KCONFIG:=CONFIG_RTL8366_SMI
+  FILES:=$(LINUX_DIR)/drivers/net/phy/rtl8366_smi.ko
+  AUTOLOAD:=$(call AutoLoad,42,rtl8366_smi)
+endef
+
+define KernelPackage/switch-rtl8366_smi/description
+  Realtek RTL8366 series SMI switch interface support
+endef
+
+$(eval $(call KernelPackage,switch-rtl8366-smi))
+
+define KernelPackage/switch-rtl8366rb
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8366RB switch support
+  DEPENDS:=+kmod-switch-rtl8366-smi
+  KCONFIG:=CONFIG_RTL8366RB_PHY
+  FILES:=$(LINUX_DIR)/drivers/net/phy/rtl8366rb.ko
+  AUTOLOAD:=$(call AutoLoad,43,rtl8366rb)
+endef
+
+define KernelPackage/switch-rtl8366rb/description
+  Realtek RTL8366RB switch support
+endef
+
+$(eval $(call KernelPackage,switch-rtl8366rb))
+
+define KernelPackage/switch-rtl8366s
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Realtek RTL8366S switch support
+  DEPENDS:=+kmod-switch-rtl8366-smi
+  KCONFIG:=CONFIG_RTL8366S_PHY
+  FILES:=$(LINUX_DIR)/drivers/net/phy/rtl8366s.ko
+  AUTOLOAD:=$(call AutoLoad,43,rtl8366s)
+endef
+
+define KernelPackage/switch-rtl8366s/description
+  Realtek RTL8366S switch support
+endef
+
+$(eval $(call KernelPackage,switch-rtl8366s))
+
 define KernelPackage/natsemi
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=National Semiconductor DP8381x series
@@ -181,7 +226,7 @@ $(eval $(call KernelPackage,natsemi))
 define KernelPackage/r6040
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=RDC Fast-Ethernet support
-  DEPENDS:=@TARGET_rdc
+  DEPENDS:=@TARGET_rdc +kmod-libphy
   KCONFIG:=CONFIG_R6040 \
 		CONFIG_R6040_NAPI=y
   ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.2)),1)

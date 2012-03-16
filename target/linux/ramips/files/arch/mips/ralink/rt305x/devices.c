@@ -24,6 +24,7 @@
 #include "devices.h"
 
 #include <ramips_eth_platform.h>
+#include <rt305x_esw_platform.h>
 
 static struct resource rt305x_flash0_resources[] = {
 	{
@@ -34,10 +35,14 @@ static struct resource rt305x_flash0_resources[] = {
 	},
 };
 
+struct physmap_flash_data rt305x_flash0_data;
 static struct platform_device rt305x_flash0_device = {
 	.name		= "physmap-flash",
 	.resource	= rt305x_flash0_resources,
 	.num_resources	= ARRAY_SIZE(rt305x_flash0_resources),
+	.dev = {
+		.platform_data = &rt305x_flash0_data,
+	},
 };
 
 static struct resource rt305x_flash1_resources[] = {
@@ -49,17 +54,21 @@ static struct resource rt305x_flash1_resources[] = {
 	},
 };
 
+struct physmap_flash_data rt305x_flash1_data;
 static struct platform_device rt305x_flash1_device = {
 	.name		= "physmap-flash",
 	.resource	= rt305x_flash1_resources,
 	.num_resources	= ARRAY_SIZE(rt305x_flash1_resources),
+	.dev = {
+		.platform_data = &rt305x_flash1_data,
+	},
 };
 
 static int rt305x_flash_instance __initdata;
-void __init rt305x_register_flash(unsigned int id,
-				  struct physmap_flash_data *pdata)
+void __init rt305x_register_flash(unsigned int id)
 {
 	struct platform_device *pdev;
+	struct physmap_flash_data *pdata;
 	u32 t;
 	int reg;
 
@@ -79,6 +88,7 @@ void __init rt305x_register_flash(unsigned int id,
 	t = rt305x_memc_rr(reg);
 	t = (t >> FLASH_CFG_WIDTH_SHIFT) & FLASH_CFG_WIDTH_MASK;
 
+	pdata = pdev->dev.platform_data;
 	switch (t) {
 	case FLASH_CFG_WIDTH_8BIT:
 		pdata->width = 1;
@@ -94,7 +104,6 @@ void __init rt305x_register_flash(unsigned int id,
 		return;
 	}
 
-	pdev->dev.platform_data = pdata;
 	pdev->id = rt305x_flash_instance;
 
 	platform_device_register(pdev);
@@ -142,7 +151,12 @@ static struct resource rt305x_esw_resources[] = {
 	},
 };
 
-struct rt305x_esw_platform_data rt305x_esw_data;
+struct rt305x_esw_platform_data rt305x_esw_data = {
+	.vlan_config		= RT305X_ESW_VLAN_CONFIG_NONE,
+	.reg_initval_fct2	= 0x00d6500c,
+	.reg_initval_fpa2	= 0x3f502b28,
+};
+
 static struct platform_device rt305x_esw_device = {
 	.name		= "rt305x-esw",
 	.resource	= rt305x_esw_resources,
@@ -215,8 +229,8 @@ void __init rt305x_register_wdt(void)
 
 	/* enable WDT reset output on pin SRAM_CS_N */
 	t = rt305x_sysc_rr(SYSC_REG_SYSTEM_CONFIG);
-	t |= SYSTEM_CONFIG_SRAM_CS0_MODE_WDT <<
-	     SYSTEM_CONFIG_SRAM_CS0_MODE_SHIFT;
+	t |= RT305X_SYSCFG_SRAM_CS0_MODE_WDT <<
+	     RT305X_SYSCFG_SRAM_CS0_MODE_SHIFT;
 	rt305x_sysc_wr(t, SYSC_REG_SYSTEM_CONFIG);
 
 	platform_device_register(&rt305x_wdt_device);

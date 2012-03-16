@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2011 Jo-Philipp Wich <xm@subsignal.org>
+# Copyright (C) 2010-2012 Jo-Philipp Wich <xm@subsignal.org>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,7 +8,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=uhttpd
-PKG_RELEASE:=30
+PKG_RELEASE:=31
 
 PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)
 PKG_CONFIG_DEPENDS := \
@@ -92,7 +92,7 @@ endef
 
 
 TARGET_CFLAGS += $(TLS_CFLAGS)
-TARGET_LDFLAGS += $(TLS_LDFLAGS) -Wl,-rpath-link=$(STAGING_DIR)/usr/lib
+TARGET_LDFLAGS += -Wl,-rpath-link=$(STAGING_DIR)/usr/lib
 MAKE_VARS += \
 	FPIC="$(FPIC)" \
 	LUA_SUPPORT="$(if $(CONFIG_PACKAGE_uhttpd-mod-lua),1)" \

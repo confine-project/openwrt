@@ -10,9 +10,6 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/mtd/physmap.h>
 
 #include <asm/mach-ralink/machine.h>
 #include <asm/mach-ralink/dev-gpio-buttons.h>
@@ -31,47 +28,8 @@
 #define MOFI3500_3GN_GPIO_BUTTON_CONNECT	7
 #define MOFI3500_3GN_GPIO_BUTTON_WPS		0
 
-#define MOFI3500_3GN_BUTTONS_POLL_INTERVAL	20
-
-#ifdef CONFIG_MTD_PARTITIONS
-static struct mtd_partition mofi3500_3gn_partitions[] = {
-	{
-		.name	= "u-boot",
-		.offset	= 0,
-		.size	= 0x030000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "config",
-		.offset	= 0x030000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "factory",
-		.offset	= 0x040000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "kernel",
-		.offset	= 0x050000,
-		.size	= 0x0d0000,
-	}, {
-		.name	= "rootfs",
-		.offset	= 0x120000,
-		.size	= 0x6e0000,
-	}, {
-		.name	= "firmware",
-		.offset	= 0x050000,
-		.size	= 0x7b0000,
-	}
-};
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data mofi3500_3gn_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(mofi3500_3gn_partitions),
-	.parts		= mofi3500_3gn_partitions,
-#endif
-};
+#define MOFI3500_3GN_KEYS_POLL_INTERVAL		20
+#define MOFI3500_3GN_KEYS_DEBOUNCE_INTERVAL	(3 * MOFI3500_3GN_KEYS_POLL_INTERVAL)
 
 static struct gpio_led mofi3500_3gn_leds_gpio[] __initdata = {
 	{
@@ -93,26 +51,26 @@ static struct gpio_led mofi3500_3gn_leds_gpio[] __initdata = {
 	}
 };
 
-static struct gpio_button mofi3500_3gn_gpio_buttons[] __initdata = {
+static struct gpio_keys_button mofi3500_3gn_gpio_buttons[] __initdata = {
 	{
 		.desc		= "reset",
 		.type		= EV_KEY,
 		.code		= KEY_RESTART,
-		.threshold	= 3,
+		.debounce_interval = MOFI3500_3GN_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= MOFI3500_3GN_GPIO_BUTTON_RESET,
 		.active_low	= 1,
 	}, {
 		.desc		= "connect",
 		.type		= EV_KEY,
 		.code		= KEY_CONNECT,
-		.threshold	= 3,
+		.debounce_interval = MOFI3500_3GN_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= MOFI3500_3GN_GPIO_BUTTON_CONNECT,
 		.active_low	= 1,
 	}, {
 		.desc		= "wps",
 		.type		= EV_KEY,
 		.code		= KEY_WPS_BUTTON,
-		.threshold	= 3,
+		.debounce_interval = MOFI3500_3GN_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= MOFI3500_3GN_GPIO_BUTTON_WPS,
 		.active_low	= 1,
 	}
@@ -126,12 +84,13 @@ static void __init mofi3500_3gn_init(void)
 {
 	rt305x_gpio_init(MOFI3500_3GN_GPIO_MODE);
 
-	rt305x_register_flash(0, &mofi3500_3gn_flash_data);
+	rt305x_register_flash(0);
+
 	rt305x_esw_data.vlan_config = RT305X_ESW_VLAN_CONFIG_LLLLW;
 	rt305x_register_ethernet();
 	ramips_register_gpio_leds(-1, ARRAY_SIZE(mofi3500_3gn_leds_gpio),
 				  mofi3500_3gn_leds_gpio);
-	ramips_register_gpio_buttons(-1, MOFI3500_3GN_BUTTONS_POLL_INTERVAL,
+	ramips_register_gpio_buttons(-1, MOFI3500_3GN_KEYS_POLL_INTERVAL,
 				     ARRAY_SIZE(mofi3500_3gn_gpio_buttons),
 				     mofi3500_3gn_gpio_buttons);
 	rt305x_register_wifi();

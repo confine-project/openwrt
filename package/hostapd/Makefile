@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
 PKG_VERSION:=20111103
-PKG_RELEASE:=1
+PKG_RELEASE:=3
 PKG_REV:=6caaae1e48da247b21b54ea6001646597e35d9b1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -21,7 +21,6 @@ PKG_MIRROR_MD5SUM:=2650d83c1d4649a5df9fe265f8a5775f
 
 PKG_BUILD_DEPENDS:= \
 	PACKAGE_kmod-madwifi:madwifi \
-	PACKAGE_kmod-mac80211:mac80211 \
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_WPA_SUPPLICANT_NO_TIMESTAMP_CHECK \
@@ -53,6 +52,8 @@ endif
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
+
+STAMP_CONFIGURED:=$(STAMP_CONFIGURED)_$(CONFIG_WPA_MSG_MIN_PRIORITY)
 
 ifneq ($(CONFIG_DRIVER_11N_SUPPORT),)
   HOSTAPD_IEEE80211N:=y
@@ -218,9 +219,9 @@ TARGET_CPPFLAGS := \
 	-I$(PKG_BUILD_DIR)/src/crypto \
 	$(TARGET_CPPFLAGS) \
 	-I$(STAGING_DIR)/usr/include/madwifi \
-	-I$(STAGING_DIR)/usr/include/mac80211 \
 	-DCONFIG_LIBNL20 \
-	-D_GNU_SOURCE
+	-D_GNU_SOURCE \
+	$(if $(CONFIG_WPA_MSG_MIN_PRIORITY),-DCONFIG_MSG_MIN_PRIORITY=$(CONFIG_WPA_MSG_MIN_PRIORITY))
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 TARGET_LDFLAGS += -Wl,--gc-sections

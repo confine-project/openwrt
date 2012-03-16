@@ -26,6 +26,7 @@ fixup_interface() {
 
 	config_get type "$config" type
 	config_get ifname "$config" ifname
+	config_get device "$config" device "$ifname"
 	[ "bridge" = "$type" ] && ifname="br-$config"
 	config_set "$config" device "$ifname"
 	ubus_call "network.interface.$config" status
@@ -33,6 +34,7 @@ fixup_interface() {
 	[ -n "$l3dev" ] && ifname="$l3dev"
 	json_init
 	config_set "$config" ifname "$ifname"
+	config_set "$config" device "$device"
 }
 
 scan_interfaces() {
@@ -55,3 +57,8 @@ setup_interface() {
 	ubus call network.interface."$config" add_device "{ \"name\": \"$iface\" }"
 }
 
+do_sysctl() {
+	[ -n "$2" ] && \
+		sysctl -n -e -w "$1=$2" >/dev/null || \
+		sysctl -n -e "$1"
+}

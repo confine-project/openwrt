@@ -31,6 +31,8 @@ unexport P4PORT P4USER P4CONFIG P4CLIENT
 # prevent user defaults for quilt from interfering
 unexport QUILT_PATCHES QUILT_PATCH_OPTS
 
+unexport C_INCLUDE_PATH
+
 # make sure that a predefined CFLAGS variable does not disturb packages
 export CFLAGS=
 
@@ -91,9 +93,9 @@ menuconfig: scripts/config/mconf prepare-tmpinfo FORCE
 
 prepare_kernel_conf: .config FORCE
 
-ifeq ($(wildcard staging_dir/host/bin/sed),)
+ifeq ($(wildcard staging_dir/host/bin/quilt),)
   prepare_kernel_conf:
-	@+$(SUBMAKE) -r tools/sed/install
+	@+$(SUBMAKE) -r tools/quilt/install
 else
   prepare_kernel_conf: ;
 endif

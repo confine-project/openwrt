@@ -1,14 +1,15 @@
 /*
  *  NAND flash driver for the MikroTik RouterBOARD 750
  *
- *  Copyright (C) 2010 Gabor Juhos <juhosg@openwrt.org>
+ *  Copyright (C) 2010-2012 Gabor Juhos <juhosg@openwrt.org>
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License version 2 as published
  *  by the Free Software Foundation.
  */
 
-#include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/mtd/nand.h>
 #include <linux/mtd/mtd.h>
 #include <linux/mtd/partitions.h>
@@ -16,8 +17,9 @@
 #include <linux/io.h>
 #include <linux/slab.h>
 
-#include <asm/mach-ar71xx/ar71xx.h>
-#include <asm/mach-ar71xx/mach-rb750.h>
+#include <asm/mach-ath79/ar71xx_regs.h>
+#include <asm/mach-ath79/ath79.h>
+#include <asm/mach-ath79/mach-rb750.h>
 
 #define DRV_NAME	"rb750-nand"
 #define DRV_VERSION	"0.1.0"
@@ -73,15 +75,16 @@ static struct mtd_partition rb750_nand_partitions[] = {
 
 static void rb750_nand_write(const u8 *buf, unsigned len)
 {
-	void __iomem *base = ar71xx_gpio_base;
+	void __iomem *base = ath79_gpio_base;
 	u32 out;
+	u32 t;
 	unsigned i;
 
 	/* set data lines to output mode */
-	__raw_writel(__raw_readl(base + GPIO_REG_OE) | RB750_NAND_DATA_BITS,
-		     base + GPIO_REG_OE);
+	t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+	__raw_writel(t | RB750_NAND_DATA_BITS, base + AR71XX_GPIO_REG_OE);
 
-	out = __raw_readl(base + GPIO_REG_OUT);
+	out = __raw_readl(base + AR71XX_GPIO_REG_OUT);
 	out &= ~(RB750_NAND_DATA_BITS | RB750_NAND_NWE);
 	for (i = 0; i != len; i++) {
 		u32 data;
@@ -89,39 +92,40 @@ static void rb750_nand_write(const u8 *buf, unsigned len)
 		data = buf[i];
 		data <<= RB750_NAND_DATA_SHIFT;
 		data |= out;
-		__raw_writel(data, base + GPIO_REG_OUT);
+		__raw_writel(data, base + AR71XX_GPIO_REG_OUT);
 
-		__raw_writel(data | RB750_NAND_NWE, base + GPIO_REG_OUT);
+		__raw_writel(data | RB750_NAND_NWE, base + AR71XX_GPIO_REG_OUT);
 		/* flush write */
-		__raw_readl(base + GPIO_REG_OUT);
+		__raw_readl(base + AR71XX_GPIO_REG_OUT);
 	}
 
 	/* set data lines to input mode */
-	__raw_writel(__raw_readl(base + GPIO_REG_OE) & ~RB750_NAND_DATA_BITS,
-		     base + GPIO_REG_OE);
+	t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+	__raw_writel(t & ~RB750_NAND_DATA_BITS, base + AR71XX_GPIO_REG_OE);
 	/* flush write */
-	__raw_readl(base + GPIO_REG_OE);
+	__raw_readl(base + AR71XX_GPIO_REG_OE);
 }
 
 static int rb750_nand_read_verify(u8 *read_buf, unsigned len,
 				  const u8 *verify_buf)
 {
-	void __iomem *base = ar71xx_gpio_base;
+	void __iomem *base = ath79_gpio_base;
 	unsigned i;
 
 	for (i = 0; i < len; i++) {
 		u8 data;
 
 		/* activate RE line */
-		__raw_writel(RB750_NAND_NRE, base + GPIO_REG_CLEAR);
+		__raw_writel(RB750_NAND_NRE, base + AR71XX_GPIO_REG_CLEAR);
 		/* flush write */
-		__raw_readl(base + GPIO_REG_CLEAR);
+		__raw_readl(base + AR71XX_GPIO_REG_CLEAR);
 
 		/* read input lines */
-		data = __raw_readl(base + GPIO_REG_IN) >> RB750_NAND_DATA_SHIFT;
+		data = __raw_readl(base + AR71XX_GPIO_REG_IN) >>
+		       RB750_NAND_DATA_SHIFT;
 
 		/* deactivate RE line */
-		__raw_writel(RB750_NAND_NRE, base + GPIO_REG_SET);
+		__raw_writel(RB750_NAND_NRE, base + AR71XX_GPIO_REG_SET);
 
 		if (read_buf)
 			read_buf[i] = data;
@@ -134,44 +138,41 @@ static int rb750_nand_read_verify(u8 *read_buf, unsigned len,
 
 static void rb750_nand_select_chip(struct mtd_info *mtd, int chip)
 {
-	void __iomem *base = ar71xx_gpio_base;
+	void __iomem *base = ath79_gpio_base;
 	u32 func;
+	u32 t;
 
-	func = __raw_readl(base + GPIO_REG_FUNC);
+	func = __raw_readl(base + AR71XX_GPIO_REG_FUNC);
 	if (chip >= 0) {
 		/* disable latch */
 		rb750_latch_change(RB750_LVC573_LE, 0);
 
-		/* disable alternate functions */
-		ar71xx_gpio_function_setup(AR724X_GPIO_FUNC_JTAG_DISABLE,
-					   AR724X_GPIO_FUNC_SPI_EN);
+		rb750_nand_pins_enable();
 
 		/* set input mode for data lines */
-		__raw_writel(__raw_readl(base + GPIO_REG_OE) &
-			     ~RB750_NAND_INPUT_BITS,
-			     base + GPIO_REG_OE);
+		t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+		__raw_writel(t & ~RB750_NAND_INPUT_BITS,
+			     base + AR71XX_GPIO_REG_OE);
 
 		/* deactivate RE and WE lines */
 		__raw_writel(RB750_NAND_NRE | RB750_NAND_NWE,
-			     base + GPIO_REG_SET);
+			     base + AR71XX_GPIO_REG_SET);
 		/* flush write */
-		(void) __raw_readl(base + GPIO_REG_SET);
+		(void) __raw_readl(base + AR71XX_GPIO_REG_SET);
 
 		/* activate CE line */
-		__raw_writel(RB750_NAND_NCE, base + GPIO_REG_CLEAR);
+		__raw_writel(RB750_NAND_NCE, base + AR71XX_GPIO_REG_CLEAR);
 	} else {
 		/* deactivate CE line */
-		__raw_writel(RB750_NAND_NCE, base + GPIO_REG_SET);
+		__raw_writel(RB750_NAND_NCE, base + AR71XX_GPIO_REG_SET);
 		/* flush write */
-		(void) __raw_readl(base + GPIO_REG_SET);
+		(void) __raw_readl(base + AR71XX_GPIO_REG_SET);
 
-		__raw_writel(__raw_readl(base + GPIO_REG_OE) |
-			     RB750_NAND_IO0 | RB750_NAND_RDY,
-			     base + GPIO_REG_OE);
+		t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+		__raw_writel(t | RB750_NAND_IO0 | RB750_NAND_RDY,
+			     base + AR71XX_GPIO_REG_OE);
 
-		/* restore alternate functions */
-		ar71xx_gpio_function_setup(AR724X_GPIO_FUNC_SPI_EN,
-					   AR724X_GPIO_FUNC_JTAG_DISABLE);
+		rb750_nand_pins_disable();
 
 		/* enable latch */
 		rb750_latch_change(0, RB750_LVC573_LE);
@@ -180,27 +181,27 @@ static void rb750_nand_select_chip(struct mtd_info *mtd, int chip)
 
 static int rb750_nand_dev_ready(struct mtd_info *mtd)
 {
-	void __iomem *base = ar71xx_gpio_base;
+	void __iomem *base = ath79_gpio_base;
 
-	return !!(__raw_readl(base + GPIO_REG_IN) & RB750_NAND_RDY);
+	return !!(__raw_readl(base + AR71XX_GPIO_REG_IN) & RB750_NAND_RDY);
 }
 
 static void rb750_nand_cmd_ctrl(struct mtd_info *mtd, int cmd,
 				unsigned int ctrl)
 {
 	if (ctrl & NAND_CTRL_CHANGE) {
-		void __iomem *base = ar71xx_gpio_base;
+		void __iomem *base = ath79_gpio_base;
 		u32 t;
 
-		t = __raw_readl(base + GPIO_REG_OUT);
+		t = __raw_readl(base + AR71XX_GPIO_REG_OUT);
 
 		t &= ~(RB750_NAND_CLE | RB750_NAND_ALE);
 		t |= (ctrl & NAND_CLE) ? RB750_NAND_CLE : 0;
 		t |= (ctrl & NAND_ALE) ? RB750_NAND_ALE : 0;
 
-		__raw_writel(t, base + GPIO_REG_OUT);
+		__raw_writel(t, base + AR71XX_GPIO_REG_OUT);
 		/* flush write */
-		__raw_readl(base + GPIO_REG_OUT);
+		__raw_readl(base + AR71XX_GPIO_REG_OUT);
 	}
 
 	if (cmd != NAND_CMD_NONE) {
@@ -233,30 +234,31 @@ static int rb750_nand_verify_buf(struct mtd_info *mtd, const u8 *buf, int len)
 
 static void __init rb750_nand_gpio_init(void)
 {
-	void __iomem *base = ar71xx_gpio_base;
+	void __iomem *base = ath79_gpio_base;
 	u32 out;
+	u32 t;
 
-	out = __raw_readl(base + GPIO_REG_OUT);
+	out = __raw_readl(base + AR71XX_GPIO_REG_OUT);
 
 	/* setup output levels */
 	__raw_writel(RB750_NAND_NCE | RB750_NAND_NRE | RB750_NAND_NWE,
-		     base + GPIO_REG_SET);
+		     base + AR71XX_GPIO_REG_SET);
 
 	__raw_writel(RB750_NAND_ALE | RB750_NAND_CLE,
-		     base + GPIO_REG_CLEAR);
+		     base + AR71XX_GPIO_REG_CLEAR);
 
 	/* setup input lines */
-	__raw_writel(__raw_readl(base + GPIO_REG_OE) & ~(RB750_NAND_INPUT_BITS),
-		     base + GPIO_REG_OE);
+	t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+	__raw_writel(t & ~(RB750_NAND_INPUT_BITS), base + AR71XX_GPIO_REG_OE);
 
 	/* setup output lines */
-	__raw_writel(__raw_readl(base + GPIO_REG_OE) | RB750_NAND_OUTPUT_BITS,
-		     base + GPIO_REG_OE);
+	t = __raw_readl(base + AR71XX_GPIO_REG_OE);
+	__raw_writel(t | RB750_NAND_OUTPUT_BITS, base + AR71XX_GPIO_REG_OE);
 
 	rb750_latch_change(~out & RB750_NAND_IO0, out & RB750_NAND_IO0);
 }
 
-static int __init rb750_nand_probe(struct platform_device *pdev)
+static int __devinit rb750_nand_probe(struct platform_device *pdev)
 {
 	struct rb750_nand_info	*info;
 	int ret;
@@ -287,7 +289,7 @@ static int __init rb750_nand_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, info);
 
-	ret = nand_scan_ident(&info->mtd, 1);
+	ret = nand_scan_ident(&info->mtd, 1, NULL);
 	if (ret) {
 		ret = -ENXIO;
 		goto err_free_info;
@@ -302,12 +304,8 @@ static int __init rb750_nand_probe(struct platform_device *pdev)
 		goto err_set_drvdata;
 	}
 
-#ifdef CONFIG_MTD_PARTITIONS
-	ret = add_mtd_partitions(&info->mtd, rb750_nand_partitions,
+	ret = mtd_device_register(&info->mtd, rb750_nand_partitions,
 				 ARRAY_SIZE(rb750_nand_partitions));
-#else
-	ret = add_mtd_device(&info->mtd);
-#endif
 	if (ret)
 		goto err_release_nand;
 

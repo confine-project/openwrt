@@ -3,6 +3,7 @@ GCC_VARIANT:=final
 include ../common.mk
 
 GCC_CONFIGURE += \
+	--with-headers=$(TOOLCHAIN_DIR)/include \
 	--enable-languages=$(TARGET_LANGUAGES) \
 	--enable-shared \
 	--enable-threads \
@@ -70,6 +71,7 @@ define Host/Install
 		done; \
 	);
 	$(if $(CONFIG_EXTRA_TARGET_ARCH),$(call SetupExtraArch))
+	$(SCRIPT_DIR)/patch-specs.sh "$(TOOLCHAIN_DIR)"
 endef
 
 $(eval $(call HostBuild))

@@ -133,7 +133,7 @@ enable_broadcom() {
 	config_get hwmode "$device" hwmode
 	local vif_pre_up vif_post_up vif_do_up vif_txpower
 	local doth=0
-	local wmm=0
+	local wmm=1
 
 	_c=0
 	nas="$(which nas)"
@@ -245,9 +245,12 @@ enable_broadcom() {
 			*wpa*)
 				wsec_r=1
 				eap_r=1
-				config_get key "$vif" key
-				config_get server "$vif" server
-				config_get port "$vif" port
+				config_get auth_server "$vif" auth_server
+				[ -z "$auth_server" ] && config_get auth_server "$vif" server
+				config_get auth_port "$vif" auth_port
+				[ -z "$auth_port" ] && config_get auth_port "$vif" port
+				config_get auth_secret "$vif" auth_secret
+				[ -z "$auth_secret" ] && config_get auth_secret "$vif" key
 
 				# wpa version + default cipher
 				case "$enc" in
@@ -266,8 +269,8 @@ enable_broadcom() {
 				# group rekey interval
 				config_get rekey "$vif" wpa_group_rekey
 
-				eval "${vif}_key=\"\$key\""
-				nasopts="-r \"\$${vif}_key\" -h $server -p ${port:-1812}${rekey:+ -g $rekey}"
+				eval "${vif}_key=\"\$auth_secret\""
+				nasopts="-r \"\$${vif}_key\" -h $auth_server -p ${auth_port:-1812}${rekey:+ -g $rekey}"
 			;;
 		esac
 		append vif_do_up "wsec $wsec" "$N"
@@ -327,7 +330,7 @@ infra $infra
 ${wet:+wet 1}
 802.11d 0
 802.11h ${doth:-0}
-wme ${wmm:-0}
+wme ${wmm:-1}
 rxant ${rxantenna:-3}
 txant ${txantenna:-3}
 fragthresh ${frag:-2346}

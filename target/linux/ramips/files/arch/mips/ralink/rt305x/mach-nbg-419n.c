@@ -10,9 +10,6 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/mtd/physmap.h>
 
 #include <asm/mach-ralink/machine.h>
 #include <asm/mach-ralink/dev-gpio-buttons.h>
@@ -28,39 +25,8 @@
 #define NBG_419N_GPIO_BUTTON_WPS	0	/* active low */
 #define NBG_419N_GPIO_BUTTON_RESET	10	/* active low */
 
-#define NBG_419N_BUTTONS_POLL_INTERVAL	20
-
-#ifdef CONFIG_MTD_PARTITIONS
-static struct mtd_partition nbg_419n_partitions[] = {
-	{
-		.name	= "u-boot",
-		.offset	= 0,
-		.size	= 0x030000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "config",
-		.offset	= 0x030000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "factory",
-		.offset	= 0x040000,
-		.size	= 0x010000,
-		.mask_flags = MTD_WRITEABLE,
-	}, {
-		.name	= "kernel",
-		.offset	= 0x050000,
-		.size	= 0x3b0000,
-	}
-};
-#endif /* CONFIG_MTD_PARTITIONS */
-
-static struct physmap_flash_data nbg_419n_flash_data = {
-#ifdef CONFIG_MTD_PARTITIONS
-	.nr_parts	= ARRAY_SIZE(nbg_419n_partitions),
-	.parts		= nbg_419n_partitions,
-#endif
-};
+#define NBG_419N_KEYS_POLL_INTERVAL	20
+#define NBG_419N_KEYS_DEBOUNCE_INTERVAL	(3 * NBG_419N_KEYS_POLL_INTERVAL)
 
 static struct gpio_led nbg_419n_leds_gpio[] __initdata = {
 	{
@@ -74,19 +40,19 @@ static struct gpio_led nbg_419n_leds_gpio[] __initdata = {
 	}
 };
 
-static struct gpio_button nbg_419n_gpio_buttons[] __initdata = {
+static struct gpio_keys_button nbg_419n_gpio_buttons[] __initdata = {
 	{
 		.desc		= "reset",
 		.type		= EV_KEY,
 		.code		= KEY_RESTART,
-		.threshold	= 3,
+		.debounce_interval = NBG_419N_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= NBG_419N_GPIO_BUTTON_RESET,
 		.active_low	= 1,
 	}, {
 		.desc		= "wps",
 		.type		= EV_KEY,
 		.code		= KEY_WPS_BUTTON,
-		.threshold	= 3,
+		.debounce_interval = NBG_419N_KEYS_DEBOUNCE_INTERVAL,
 		.gpio		= NBG_419N_GPIO_BUTTON_WPS,
 		.active_low	= 1,
 	}
@@ -96,12 +62,13 @@ static void __init nbg_419n_init(void)
 {
 	rt305x_gpio_init(RT305X_GPIO_MODE_GPIO << RT305X_GPIO_MODE_UART0_SHIFT);
 
-	rt305x_register_flash(0, &nbg_419n_flash_data);
+	rt305x_register_flash(0);
+
 	rt305x_esw_data.vlan_config = RT305X_ESW_VLAN_CONFIG_LLLLW;
 	rt305x_register_ethernet();
 	ramips_register_gpio_leds(-1, ARRAY_SIZE(nbg_419n_leds_gpio),
 				  nbg_419n_leds_gpio);
-	ramips_register_gpio_buttons(-1, NBG_419N_BUTTONS_POLL_INTERVAL,
+	ramips_register_gpio_buttons(-1, NBG_419N_KEYS_POLL_INTERVAL,
 				     ARRAY_SIZE(nbg_419n_gpio_buttons),
 				     nbg_419n_gpio_buttons);
 	rt305x_register_wifi();

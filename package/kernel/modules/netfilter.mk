@@ -122,6 +122,7 @@ define KernelPackage/ipt-ipopt/description
  - statistic
  - tcpmss
  - time
+ - ttl/TTL
  - unclean
 endef
 
@@ -217,7 +218,6 @@ define KernelPackage/ipt-nathelper-extra/description
  - mms
  - pptp
  - proto_gre
- - rtsp
  - sip
  - snmp_basic
 endef

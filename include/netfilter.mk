@@ -60,8 +60,11 @@ $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_MATCH_STATE, $(P_XT)xt_st
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_IP_NF_RAW, $(P_V4)iptable_raw))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_IP_NF_TARGET_NOTRACK, $(P_V4)ipt_NOTRACK))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_TARGET_NOTRACK, $(P_XT)xt_NOTRACK))
+$(eval $(call nf_add,IPT_CONNTRACK,CONFIG_IP_NF_TARGET_CT, $(P_V4)ipt_CT))
+$(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_TARGET_CT, $(P_XT)xt_CT))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_IP_NF_MATCH_CONNTRACK, $(P_V4)ipt_conntrack))
 $(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_MATCH_CONNTRACK, $(P_XT)xt_conntrack))
+$(eval $(call nf_add,IPT_CONNTRACK,CONFIG_NETFILTER_XT_TARGET_CT, $(P_XT)xt_CT))
 
 
 # conntrack-extra
@@ -113,7 +116,6 @@ $(eval $(call nf_add,IPT_IPOPT,CONFIG_IP_NF_TARGET_DSCP, $(P_V4)ipt_DSCP))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_DSCP, $(P_XT)xt_dscp))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_DSCP, $(P_XT)xt_DSCP))
 $(eval $(call nf_add,IPT_HASHLIMIT,CONFIG_NETFILTER_XT_MATCH_HASHLIMIT, $(P_XT)xt_hashlimit)) 
-$(eval $(call nf_add,IPT_IPOPT,CONFIG_IP_NF_MATCH_ECN, $(P_V4)ipt_ecn))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_IP_NF_MATCH_LENGTH, $(P_V4)ipt_length))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_LENGTH, $(P_XT)xt_length))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_IP_NF_MATCH_MARK, $(P_V4)ipt_mark))
@@ -141,9 +143,17 @@ else
   $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_MARK, $(P_XT)xt_MARK))
 endif
 
+ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,3.3)),1)
+  $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_ECN, $(P_XT)xt_ecn))
+else
+  $(eval $(call nf_add,IPT_IPOPT,CONFIG_IP_NF_MATCH_ECN, $(P_V4)ipt_ecn))
+endif
+
 # userland only
-$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_DSCP, $(P_XT)xt_tos)))
-$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_DSCP, $(P_XT)xt_TOS)))
+$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_DSCP, xt_tos)))
+$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_DSCP, xt_TOS)))
+$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_HL, ipt_ttl)))
+$(eval $(if $(NF_KMOD),,$(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_HL, ipt_TTL)))
 
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_MATCH_HL, $(P_XT)xt_hl))
 $(eval $(call nf_add,IPT_IPOPT,CONFIG_NETFILTER_XT_TARGET_HL, $(P_XT)xt_HL))
@@ -240,10 +250,6 @@ $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_PPTP, $(P_V4)ip_conntrack_
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_NAT_PPTP, $(P_V4)ip_nat_pptp))
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_NF_CONNTRACK_PPTP, $(P_XT)nf_conntrack_pptp))
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_NF_NAT_PPTP, $(P_V4)nf_nat_pptp))
-$(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_RTSP, $(P_V4)ip_conntrack_rtsp))
-$(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_NAT_RTSP, $(P_V4)ip_nat_rtsp))
-$(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_NF_CONNTRACK_RTSP, $(P_XT)nf_conntrack_rtsp))
-$(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_NF_NAT_RTSP, $(P_V4)nf_nat_rtsp))
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_SIP, $(P_V4)ip_conntrack_sip))
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_IP_NF_NAT_SIP, $(P_V4)ip_nat_sip))
 $(eval $(call nf_add,IPT_NATHELPER_EXTRA,CONFIG_NF_CONNTRACK_SIP, $(P_XT)nf_conntrack_sip))

@@ -59,7 +59,7 @@ wpa_supplicant_setup_vif() {
 		;;
 		*psk*)
 			key_mgmt='WPA-PSK'
-			config_get_bool usepassphrase "$vif" passphrase 1
+			config_get_bool usepassphrase "$vif" usepassphrase 1
 			if [ "$usepassphrase" = "1" ]; then
 				passphrase="psk=\"${key}\""
 			else
@@ -87,9 +87,11 @@ wpa_supplicant_setup_vif() {
 					pairwise='pairwise=CCMP'
 					group='group=CCMP'
 					config_get identity "$vif" identity
+					config_get client_cert "$vif" client_cert
 					config_get priv_key "$vif" priv_key
 					config_get priv_key_pwd "$vif" priv_key_pwd
 					identity="identity=\"$identity\""
+					client_cert="client_cert=\"$client_cert\""
 					priv_key="private_key=\"$priv_key\""
 					priv_key_pwd="private_key_passwd=\"$priv_key_pwd\""
 				;;
@@ -132,6 +134,7 @@ network={
 	$group
 	$eap_type
 	$ca_cert
+	$client_cert
 	$priv_key
 	$priv_key_pwd
 	$phase2
