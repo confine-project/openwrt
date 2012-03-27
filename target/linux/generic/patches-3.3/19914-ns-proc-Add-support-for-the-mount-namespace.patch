@@ -1,0 +1,115 @@
+From 50486bc796fd787a277efa85d4816721487408a4 Mon Sep 17 00:00:00 2001
+From: Eric W. Biederman <ebiederm@xmission.com>
+Date: Mon, 14 Feb 2011 16:35:06 +0100
+Subject: [PATCH] ns proc: Add support for the mount namespace
+
+The mount namespace is a little tricky as an arbitrary
+decision must be made about what to set fs->root and
+fs->pwd to, as there is no expectation of a relationship
+between the two mount namespaces.
+
+Therefor I arbitrary find the root mount point, and follow
+every mount on top of it to find the top of the mount stack.
+Then I set fs->root and fs->pwd to that location.
+
+The topmost root of the mount stack seems like a reasonable place to be.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
+---
+ fs/namespace.c          |   56 +++++++++++++++++++++++++++++++++++++++++++++++
+ fs/proc/namespaces.c    |    1 +
+ include/linux/proc_fs.h |    1 +
+ 3 files changed, 58 insertions(+), 0 deletions(-)
+
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -19,6 +19,7 @@
+ #include <linux/ramfs.h>	/* init_rootfs */
+ #include <linux/fs_struct.h>	/* get_fs_root et.al. */
+ #include <linux/fsnotify.h>	/* fsnotify_vfsmount_delete */
++#include <linux/proc_fs.h>
+ #include <linux/uaccess.h>
+ #include "pnode.h"
+ #include "internal.h"
+@@ -2622,6 +2623,60 @@ void put_mnt_ns(struct mnt_namespace *ns
+ 	kfree(ns);
+ }
+ 
++static void *mntns_get(struct task_struct *task)
++{
++   struct mnt_namespace *ns;
++   rcu_read_lock();
++   ns = task->nsproxy->mnt_ns;
++   get_mnt_ns(ns);
++   rcu_read_unlock();
++   return ns;
++}
++
++static void mntns_put(void *ns)
++{
++   put_mnt_ns(ns);
++}
++
++static int mntns_install(struct nsproxy *nsproxy, void *ns)
++{
++   struct fs_struct *fs = current->fs;
++   struct mnt_namespace *mnt_ns = ns;
++   struct path root;
++
++   if (fs->users != 1)
++       return -EINVAL;
++
++   get_mnt_ns(mnt_ns);
++   put_mnt_ns(nsproxy->mnt_ns);
++   nsproxy->mnt_ns = mnt_ns;
++
++   /* Find the root */
++   root.mnt    = mnt_ns->root;
++   root.dentry = mnt_ns->root->mnt_root;
++   path_get(&root);
++   while(d_mountpoint(root.dentry) && follow_down(&root))
++       ;
++
++   /* Update the pwd and root */
++   path_get(&root);
++   path_get(&root);
++   path_put(&fs->root);
++   path_put(&fs->pwd);
++   fs->root = root;
++   fs->pwd  = root;
++   path_put(&root);
++
++   return 0;
++}
++
++const struct proc_ns_operations mntns_operations = {
++   .name       = "mnt",
++   .get        = mntns_get,
++   .put        = mntns_put,
++   .install    = mntns_install,
++};
++
+ struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
+ {
+ 	struct vfsmount *mnt;
+--- a/fs/proc/namespaces.c
++++ b/fs/proc/namespaces.c
+@@ -24,6 +24,7 @@ static const struct proc_ns_operations *
+ #ifdef CONFIG_IPC_NS
+ 	&ipcns_operations,
+ #endif
++	&mntns_operations,
+ };
+ 
+ static const struct file_operations ns_file_operations = {
+--- a/include/linux/proc_fs.h
++++ b/include/linux/proc_fs.h
+@@ -251,6 +251,7 @@ struct proc_ns_operations {
+ extern const struct proc_ns_operations netns_operations;
+ extern const struct proc_ns_operations utsns_operations;
+ extern const struct proc_ns_operations ipcns_operations;
++extern const struct proc_ns_operations mntns_operations;
+ 
+ union proc_op {
+ 	int (*proc_get_link)(struct dentry *, struct path *);
