@@ -66,7 +66,7 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
 +
 +   /* Find the root */
 +   root.mnt    = mnt_ns->root;
-+   root.dentry = mnt_ns->root->mnt_root;
++   root.dentry = mnt_ns->root->mnt_mountpoint;
 +   path_get(&root);
 +   while(d_mountpoint(root.dentry) && follow_down(&root))
 +       ;
