@@ -10,11 +10,9 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
  include/linux/proc_fs.h |    1 +
  2 files changed, 4 insertions(+), 0 deletions(-)
 
-Index: linux-2.6.38.2/fs/proc/namespaces.c
-===================================================================
---- linux-2.6.38.2.orig/fs/proc/namespaces.c	2011-03-29 03:18:08.000000000 +0200
-+++ linux-2.6.38.2/fs/proc/namespaces.c	2011-03-29 03:18:08.000000000 +0200
-@@ -18,6 +18,9 @@
+--- a/fs/proc/namespaces.c
++++ b/fs/proc/namespaces.c
+@@ -18,6 +18,9 @@ static const struct proc_ns_operations *
  #ifdef CONFIG_NET_NS
  	&netns_operations,
  #endif
@@ -24,15 +22,13 @@ Index: linux-2.6.38.2/fs/proc/namespaces.c
  #ifdef CONFIG_UTS_NS
  	&utsns_operations,
  #endif
-Index: linux-2.6.38.2/include/linux/proc_fs.h
-===================================================================
---- linux-2.6.38.2.orig/include/linux/proc_fs.h	2011-03-29 03:18:08.000000000 +0200
-+++ linux-2.6.38.2/include/linux/proc_fs.h	2011-03-29 03:18:08.000000000 +0200
-@@ -264,6 +264,7 @@
+--- a/include/linux/proc_fs.h
++++ b/include/linux/proc_fs.h
+@@ -250,6 +250,7 @@ struct proc_ns_operations {
  };
  extern const struct proc_ns_operations netns_operations;
  extern const struct proc_ns_operations utsns_operations;
 +extern const struct proc_ns_operations pidns_operations;
  extern const struct proc_ns_operations ipcns_operations;
  extern const struct proc_ns_operations mntns_operations;
-
+ 

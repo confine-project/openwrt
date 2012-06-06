@@ -32,10 +32,12 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
  #include <linux/uaccess.h>
  #include "pnode.h"
  #include "internal.h"
-@@ -2622,6 +2623,60 @@ void put_mnt_ns(struct mnt_namespace *ns
+@@ -2621,6 +2622,61 @@ void put_mnt_ns(struct mnt_namespace *ns
+ 	release_mounts(&umount_list);
  	kfree(ns);
  }
- 
++EXPORT_SYMBOL(put_mnt_ns);
++
 +static void *mntns_get(struct task_struct *task)
 +{
 +   struct mnt_namespace *ns;
@@ -65,7 +67,7 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
 +   nsproxy->mnt_ns = mnt_ns;
 +
 +   /* Find the root */
-+   root.mnt    = mnt_ns->root;
++   root.mnt    = &(mnt_ns->root->mnt);
 +   root.dentry = mnt_ns->root->mnt_mountpoint;
 +   path_get(&root);
 +   while(d_mountpoint(root.dentry) && follow_down(&root))
@@ -89,10 +91,9 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
 +   .put        = mntns_put,
 +   .install    = mntns_install,
 +};
-+
+ 
  struct vfsmount *kern_mount_data(struct file_system_type *type, void *data)
  {
- 	struct vfsmount *mnt;
 --- a/fs/proc/namespaces.c
 +++ b/fs/proc/namespaces.c
 @@ -24,6 +24,7 @@ static const struct proc_ns_operations *

@@ -25,7 +25,7 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
   * SIGPOLL si_codes
 --- a/include/linux/sched.h
 +++ b/include/linux/sched.h
-@@ -2178,6 +2178,7 @@ extern int kill_pgrp(struct pid *pid, in
+@@ -2201,6 +2201,7 @@ extern int kill_pgrp(struct pid *pid, in
  extern int kill_pid(struct pid *pid, int sig, int priv);
  extern int kill_proc_info(int, struct siginfo *, pid_t);
  extern __must_check bool do_notify_parent(struct task_struct *, int);
@@ -141,7 +141,7 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
  	return ret;
 --- a/kernel/signal.c
 +++ b/kernel/signal.c
-@@ -1676,6 +1676,46 @@ bool do_notify_parent(struct task_struct
+@@ -1707,6 +1707,46 @@ bool do_notify_parent(struct task_struct
  	return autoreap;
  }
  

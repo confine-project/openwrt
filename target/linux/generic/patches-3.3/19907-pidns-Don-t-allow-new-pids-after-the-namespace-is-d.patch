@@ -17,11 +17,9 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
  kernel/pid_namespace.c        |    2 ++
  3 files changed, 7 insertions(+), 0 deletions(-)
 
-Index: linux-2.6.38.2/include/linux/pid_namespace.h
-===================================================================
---- linux-2.6.38.2.orig/include/linux/pid_namespace.h	2011-03-29 03:17:22.000000000 +0200
-+++ linux-2.6.38.2/include/linux/pid_namespace.h	2011-03-29 03:18:01.000000000 +0200
-@@ -20,6 +20,7 @@
+--- a/include/linux/pid_namespace.h
++++ b/include/linux/pid_namespace.h
+@@ -20,6 +20,7 @@ struct pid_namespace {
  	struct kref kref;
  	struct pidmap pidmap[PIDMAP_ENTRIES];
  	int last_pid;
@@ -29,11 +27,9 @@ Index: linux-2.6.38.2/include/linux/pid_namespace.h
  	struct task_struct *child_reaper;
  	struct kmem_cache *pid_cachep;
  	unsigned int level;
-Index: linux-2.6.38.2/kernel/pid.c
-===================================================================
---- linux-2.6.38.2.orig/kernel/pid.c	2011-03-29 03:17:22.000000000 +0200
-+++ linux-2.6.38.2/kernel/pid.c	2011-03-29 03:18:01.000000000 +0200
-@@ -282,6 +282,10 @@
+--- a/kernel/pid.c
++++ b/kernel/pid.c
+@@ -287,6 +287,10 @@ struct pid *alloc_pid(struct pid_namespa
  	struct pid_namespace *tmp;
  	struct upid *upid;
  
@@ -44,11 +40,9 @@ Index: linux-2.6.38.2/kernel/pid.c
  	pid = kmem_cache_alloc(ns->pid_cachep, GFP_KERNEL);
  	if (!pid)
  		goto out;
-Index: linux-2.6.38.2/kernel/pid_namespace.c
-===================================================================
---- linux-2.6.38.2.orig/kernel/pid_namespace.c	2011-03-29 03:17:57.000000000 +0200
-+++ linux-2.6.38.2/kernel/pid_namespace.c	2011-03-29 03:18:01.000000000 +0200
-@@ -90,6 +90,7 @@
+--- a/kernel/pid_namespace.c
++++ b/kernel/pid_namespace.c
+@@ -90,6 +90,7 @@ static struct pid_namespace *create_pid_
  	kref_init(&ns->kref);
  	ns->level = level;
  	ns->parent = get_pid_ns(parent_pid_ns);
@@ -56,7 +50,7 @@ Index: linux-2.6.38.2/kernel/pid_namespace.c
  
  	set_bit(0, ns->pidmap[0].page);
  	atomic_set(&ns->pidmap[0].nr_free, BITS_PER_PAGE - 1);
-@@ -164,6 +165,7 @@
+@@ -164,6 +165,7 @@ void zap_pid_ns_processes(struct pid_nam
  	 *
  	 */
  	read_lock(&tasklist_lock);

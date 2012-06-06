@@ -79,11 +79,9 @@ Signed-off-by: Daniel Lezcano <daniel.lezcano@free.fr>
  kernel/pid_namespace.c        |   36 +++++++++++++++++++++++++++++++++---
  4 files changed, 47 insertions(+), 11 deletions(-)
 
-Index: linux-2.6.38.2/include/linux/pid_namespace.h
-===================================================================
---- linux-2.6.38.2.orig/include/linux/pid_namespace.h	2011-03-29 03:18:01.000000000 +0200
-+++ linux-2.6.38.2/include/linux/pid_namespace.h	2011-03-29 03:18:03.000000000 +0200
-@@ -43,7 +43,10 @@
+--- a/include/linux/pid_namespace.h
++++ b/include/linux/pid_namespace.h
+@@ -45,7 +45,10 @@ static inline struct pid_namespace *get_
  	return ns;
  }
  
@@ -95,7 +93,7 @@ Index: linux-2.6.38.2/include/linux/pid_namespace.h
  extern void free_pid_ns(struct kref *kref);
  extern void zap_pid_ns_processes(struct pid_namespace *pid_ns);
  
-@@ -61,12 +64,13 @@
+@@ -63,12 +66,13 @@ static inline struct pid_namespace *get_
  	return ns;
  }
  
@@ -113,12 +111,10 @@ Index: linux-2.6.38.2/include/linux/pid_namespace.h
  }
  
  static inline void put_pid_ns(struct pid_namespace *ns)
-Index: linux-2.6.38.2/kernel/fork.c
-===================================================================
---- linux-2.6.38.2.orig/kernel/fork.c	2011-03-29 03:17:57.000000000 +0200
-+++ linux-2.6.38.2/kernel/fork.c	2011-03-29 03:18:03.000000000 +0200
-@@ -1606,7 +1606,8 @@
- 	err = -EINVAL;
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1643,7 +1643,8 @@ static int check_unshare_flags(unsigned
+ {
  	if (unshare_flags & ~(CLONE_THREAD|CLONE_FS|CLONE_NEWNS|CLONE_SIGHAND|
  				CLONE_VM|CLONE_FILES|CLONE_SYSVSEM|
 -				CLONE_NEWUTS|CLONE_NEWIPC|CLONE_NEWNET))
@@ -126,12 +122,10 @@ Index: linux-2.6.38.2/kernel/fork.c
 +			        CLONE_NEWPID))
  		return -EINVAL;
  	/*
-     * Not implemented, but pretend it works if there is nothing to
-Index: linux-2.6.38.2/kernel/nsproxy.c
-===================================================================
---- linux-2.6.38.2.orig/kernel/nsproxy.c	2011-03-29 03:17:22.000000000 +0200
-+++ linux-2.6.38.2/kernel/nsproxy.c	2011-03-29 03:18:03.000000000 +0200
-@@ -81,7 +81,8 @@
+ 	 * Not implemented, but pretend it works if there is nothing to
+--- a/kernel/nsproxy.c
++++ b/kernel/nsproxy.c
+@@ -84,7 +84,8 @@ static struct nsproxy *create_new_namesp
  		goto out_ipc;
  	}
  
@@ -141,7 +135,7 @@ Index: linux-2.6.38.2/kernel/nsproxy.c
  	if (IS_ERR(new_nsp->pid_ns)) {
  		err = PTR_ERR(new_nsp->pid_ns);
  		goto out_pid;
-@@ -185,7 +186,7 @@
+@@ -188,7 +189,7 @@ int unshare_nsproxy_namespaces(unsigned
  	int err = 0;
  
  	if (!(unshare_flags & (CLONE_NEWNS | CLONE_NEWUTS | CLONE_NEWIPC |
@@ -150,11 +144,9 @@ Index: linux-2.6.38.2/kernel/nsproxy.c
  		return 0;
  
  	if (!capable(CAP_SYS_ADMIN))
-Index: linux-2.6.38.2/kernel/pid_namespace.c
-===================================================================
---- linux-2.6.38.2.orig/kernel/pid_namespace.c	2011-03-29 03:18:01.000000000 +0200
-+++ linux-2.6.38.2/kernel/pid_namespace.c	2011-03-29 03:18:03.000000000 +0200
-@@ -123,13 +123,15 @@
+--- a/kernel/pid_namespace.c
++++ b/kernel/pid_namespace.c
+@@ -123,13 +123,15 @@ static void destroy_pid_namespace(struct
  	kmem_cache_free(pid_ns_cachep, ns);
  }
  
@@ -173,9 +165,9 @@ Index: linux-2.6.38.2/kernel/pid_namespace.c
  }
  
  void free_pid_ns(struct kref *kref)
-@@ -193,6 +195,34 @@
- 	return;
- }
+@@ -223,6 +225,34 @@ static struct ctl_table pid_ns_ctl_table
+ 
+ static struct ctl_path kern_path[] = { { .procname = "kernel", }, { } };
  
 +static void *pidns_get(struct task_struct *task)
 +{
