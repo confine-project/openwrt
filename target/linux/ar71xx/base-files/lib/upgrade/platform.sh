@@ -93,6 +93,7 @@ platform_check_image() {
 		}
 		return 0
 		;;
+	ew-dorin | \
 	ap81 | \
 	ap83 | \
 	dir-600-a1 | \
@@ -130,12 +131,14 @@ platform_check_image() {
 	tl-mr3420 | \
 	tl-wa901nd | \
 	tl-wa901nd-v2 | \
+	tl-wdr4300 | \
 	tl-wr703n | \
 	tl-wr741nd | \
 	tl-wr741nd-v4 | \
 	tl-wr841n-v1 | \
 	tl-wr841n-v7 | \
 	tl-wr941nd | \
+	tl-wr1041n-v2 | \
 	tl-wr1043nd | \
 	tl-wr2543n)
 		[ "$magic" != "0100" ] && {

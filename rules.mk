@@ -82,7 +82,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   GNU_TARGET_NAME=$(OPTIMIZE_FOR_CPU)-openwrt-linux
   DIR_SUFFIX:=_$(LIBC)-$(LIBCV)$(if $(CONFIG_arm),_eabi)
   BUILD_DIR:=$(BUILD_DIR_BASE)/target-$(ARCH)$(ARCH_SUFFIX)$(DIR_SUFFIX)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
-  STAGING_DIR:=$(TOPDIR)/staging_dir/target-$(ARCH)$(ARCH_SUFFIX)$(DIR_SUFFIX)
+  STAGING_DIR:=$(TOPDIR)/staging_dir/target-$(ARCH)$(ARCH_SUFFIX)$(DIR_SUFFIX)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
   BUILD_DIR_TOOLCHAIN:=$(BUILD_DIR_BASE)/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)$(DIR_SUFFIX)
   TOOLCHAIN_DIR:=$(TOPDIR)/staging_dir/toolchain-$(ARCH)$(ARCH_SUFFIX)_gcc-$(GCCV)$(DIR_SUFFIX)
   PACKAGE_DIR:=$(BIN_DIR)/packages
@@ -94,7 +94,7 @@ else
   endif
   REAL_GNU_TARGET_NAME=$(GNU_TARGET_NAME)
   BUILD_DIR:=$(BUILD_DIR_BASE)/target-$(GNU_TARGET_NAME)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
-  STAGING_DIR:=$(TOPDIR)/staging_dir/target-$(GNU_TARGET_NAME)
+  STAGING_DIR:=$(TOPDIR)/staging_dir/target-$(GNU_TARGET_NAME)$(if $(BUILD_SUFFIX),_$(BUILD_SUFFIX))
   BUILD_DIR_TOOLCHAIN:=$(BUILD_DIR_BASE)/toolchain-$(GNU_TARGET_NAME)
   TOOLCHAIN_DIR:=$(TOPDIR)/staging_dir/toolchain-$(GNU_TARGET_NAME)
   PACKAGE_DIR:=$(BIN_DIR)/packages
@@ -119,10 +119,8 @@ else
 LIBGCC_A=$(wildcard $(TOOLCHAIN_DIR)/lib/gcc/*/*/libgcc.a)
 LIBGCC_S=$(if $(wildcard $(TOOLCHAIN_DIR)/lib/libgcc_s.so),-L$(TOOLCHAIN_DIR)/lib -lgcc_s,$(LIBGCC_A))
 endif
-ifdef CONFIG_USE_UCLIBC
 LIBRPC=-lrpc
-endif
-LIBRPC_DEPENDS=+USE_UCLIBC:librpc
+LIBRPC_DEPENDS=+librpc
 
 ifndef DUMP
   ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
@@ -188,8 +186,14 @@ INSTALL_DATA:=install -m0644
 INSTALL_CONF:=install -m0600
 
 ifneq ($(CONFIG_CCACHE),)
-  TARGET_CC:= ccache $(TARGET_CC)
-  TARGET_CXX:= ccache $(TARGET_CXX)
+  TARGET_CC_NOCACHE:=$(TARGET_CC)
+  TARGET_CXX_NOCACHE:=$(TARGET_CXX)
+  HOSTCC_NOCACHE:=$(HOSTCC)
+  export TARGET_CC_NOCACHE
+  export TARGET_CXX_NOCACHE
+  export HOSTCC_NOCACHE
+  TARGET_CC:= ccache_cc
+  TARGET_CXX:= ccache_cxx
   HOSTCC:= ccache $(HOSTCC)
 endif
 

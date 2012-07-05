@@ -50,8 +50,17 @@ ramips_board_name() {
 	*"Allnet ALL0256N")
 		name="all0256n"
 		;;
+	*"ARC FreeStation5")
+		name="freestation5"
+		;;
 	*"Argus ATP-52B")
 		name="argus-atp52b"
+		;;
+	*"Asus WL-330N")
+		name="wl-330n"
+		;;
+	*"Asus WL-330N3G")
+		name="wl-330n3g"
 		;;
 	*"Aztech HW550-3G")
 		name="hw550-3g"
@@ -92,6 +101,9 @@ ramips_board_name() {
 	*"Omnima MiniEMBWiFi")
 		name="omni-emb"
 		;;
+	*"Petatel PSR-680W"*)
+		name="psr-680w"
+		;;
 	*"PWH2004")
 		name="pwh2004"
 		;;
@@ -128,6 +140,9 @@ ramips_board_name() {
 	*"Sitecom WL-351 v1 002")
 		name="wl-351"
 		;;
+	*"Tenda W306R V2.0")
+		name="w306r-v20"
+		;;
 	*"Ralink V11ST-FE")
 		name="v11st-fe"
 		;;
@@ -139,6 +154,9 @@ ramips_board_name() {
 		;;
 	*"WR512-3GN-like router")
 		name="wr512-3gn"
+		;;
+	*"UR-336UN Wireless N router")
+		name="ur-336un"
 		;;
 	*"AWB WR6202")
 		name="wr6202"

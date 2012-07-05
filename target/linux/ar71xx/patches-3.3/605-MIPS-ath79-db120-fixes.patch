@@ -7,9 +7,9 @@
 - * Copyright (c) 2011 Gabor Juhos <juhosg@openwrt.org>
 + * Copyright (c) 2011-2012 Gabor Juhos <juhosg@openwrt.org>
   *
-  * All rights reserved.
-  *
-@@ -38,16 +38,25 @@
+  * Permission to use, copy, modify, and/or distribute this software for any
+  * purpose with or without fee is hereby granted, provided that the above
+@@ -19,16 +19,25 @@
   */
  
  #include <linux/pci.h>
@@ -37,7 +37,7 @@
  #define DB120_GPIO_LED_WLAN_5G		12
  #define DB120_GPIO_LED_WLAN_2G		13
  #define DB120_GPIO_LED_STATUS		14
-@@ -58,8 +67,10 @@
+@@ -39,8 +48,10 @@
  #define DB120_KEYS_POLL_INTERVAL	20	/* msecs */
  #define DB120_KEYS_DEBOUNCE_INTERVAL	(3 * DB120_KEYS_POLL_INTERVAL)
  
@@ -50,7 +50,7 @@
  
  static struct gpio_led db120_leds_gpio[] __initdata = {
  	{
-@@ -82,6 +93,11 @@ static struct gpio_led db120_leds_gpio[]
+@@ -63,6 +74,11 @@ static struct gpio_led db120_leds_gpio[]
  		.gpio		= DB120_GPIO_LED_WLAN_2G,
  		.active_low	= 1,
  	},
@@ -62,7 +62,7 @@
  };
  
  static struct gpio_keys_button db120_gpio_keys[] __initdata = {
-@@ -95,66 +111,90 @@ static struct gpio_keys_button db120_gpi
+@@ -76,66 +92,99 @@ static struct gpio_keys_button db120_gpi
  	},
  };
  
@@ -84,6 +84,18 @@
 -		.max_speed_hz	= 25000000,
 -		.modalias	= "s25sl064a",
 -		.controller_data = &db120_spi0_data,
+-	}
++static struct ar8327_led_cfg db120_ar8327_led_cfg = {
++	.led_ctrl0 = 0x00000000,
++	.led_ctrl1 = 0xc737c737,
++	.led_ctrl2 = 0x00000000,
++	.led_ctrl3 = 0x00c30c00,
++	.open_drain = true,
+ };
+ 
+-static struct ath79_spi_platform_data db120_spi_data = {
+-	.bus_num	= 0,
+-	.num_chipselect	= 1,
 +static struct ar8327_platform_data db120_ar8327_data = {
 +	.pad0_cfg = &db120_ar8327_pad0_cfg,
 +	.cpuport_cfg = {
@@ -92,23 +104,20 @@
 +		.duplex = 1,
 +		.txpause = 1,
 +		.rxpause = 1,
- 	}
++	},
++	.led_cfg = &db120_ar8327_led_cfg,
  };
  
--static struct ath79_spi_platform_data db120_spi_data = {
--	.bus_num	= 0,
--	.num_chipselect	= 1,
+-#ifdef CONFIG_PCI
+-static struct ath9k_platform_data db120_ath9k_data;
 +static struct mdio_board_info db120_mdio0_info[] = {
 +	{
 +		.bus_id = "ag71xx-mdio.0",
 +		.phy_addr = 0,
 +		.platform_data = &db120_ar8327_data,
 +	},
- };
++};
  
--#ifdef CONFIG_PCI
--static struct ath9k_platform_data db120_ath9k_data;
--
 -static int db120_pci_plat_dev_init(struct pci_dev *dev)
 +static void __init db120_gmac_setup(void)
  {
@@ -130,7 +139,7 @@
 -	       sizeof(db120_ath9k_data.eeprom_data));
 +	t = __raw_readl(base + AR934X_GMAC_REG_ETH_CFG);
 +	t &= ~(AR934X_ETH_CFG_RGMII_GMAC0 | AR934X_ETH_CFG_MII_GMAC0 |
-+	       AR934X_ETH_CFG_MII_GMAC0 | AR934X_ETH_CFG_SW_ONLY_MODE);
++	       AR934X_ETH_CFG_GMII_GMAC0 | AR934X_ETH_CFG_SW_ONLY_MODE);
 +	t |= AR934X_ETH_CFG_RGMII_GMAC0 | AR934X_ETH_CFG_SW_ONLY_MODE;
 +
 +	__raw_writel(t, base + AR934X_GMAC_REG_ETH_CFG);
