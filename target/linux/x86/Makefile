@@ -12,7 +12,9 @@ BOARDNAME:=x86
 FEATURES:=squashfs jffs2 ext4 vdi vmdk pcmcia targz
 SUBTARGETS=generic olpc xen_domu ep80579 net5501 kvm_guest geos alix2 thincan
 
-LINUX_VERSION:=3.3
+#LINUX_VERSION:=3.3
+#(Latest openwrt Trunk but without LINUX_VERSION=3.3 lxc patches from xavileon)
+LINUX_VERSION:=3.3.8
 
 include $(INCLUDE_DIR)/target.mk
 

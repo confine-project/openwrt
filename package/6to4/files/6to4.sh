@@ -3,19 +3,10 @@
 # Copyright (c) 2010-2012 OpenWrt.org
 
 [ -n "$INCLUDE_ONLY" ] || {
-	. /etc/functions.sh
+	. /lib/functions.sh
+	. /lib/functions/network.sh
 	. ../netifd-proto.sh
 	init_proto "$@"
-}
-
-find_6to4_wanif() {
-	local if=$(ip -4 r l e 0.0.0.0/0); if="${if#default* dev }"; if="${if%% *}"
-	[ -n "$if" ] && grep -qs "^ *$if:" /proc/net/dev && echo "$if"
-}
-
-find_6to4_wanip() {
-	local ip=$(ip -4 a s dev "$1"); ip="${ip#*inet }"
-	echo "${ip%%[^0-9.]*}"
 }
 
 find_6to4_prefix() {
@@ -31,6 +22,10 @@ test_6to4_rfc1918()
 	[ $1 -eq  10 ] && return 0
 	[ $1 -eq 192 ] && [ $2 -eq 168 ] && return 0
 	[ $1 -eq 172 ] && [ $2 -ge  16 ] && [ $2 -le  31 ] && return 0
+
+	# RFC 6598
+	[ $1 -eq 100 ] && [ $2 -ge  64 ] && [ $2 -le 127 ] && return 0
+
 	return 1
 }
 
@@ -103,58 +98,31 @@ set_6to4_radvd_prefix() {
 	}
 }
 
-tun_error() {
-	local cfg="$1"; shift;
-
-	[ -n "$1" ] && proto_notify_error "$cfg" "$@"
-	proto_block_restart "$cfg"
-}
-
 proto_6to4_setup() {
 	local cfg="$1"
 	local iface="$2"
 	local link="6to4-$cfg"
 
-	json_get_var mtu mtu
-	json_get_var ttl ttl
-	json_get_var local4 ipaddr
+	local mtu ttl ipaddr adv_subnet adv_interface adv_valid_lifetime adv_preferred_lifetime
+	json_get_vars mtu ttl ipaddr adv_subnet adv_interface adv_valid_lifetime adv_preferred_lifetime
 
-	json_get_var adv_subnet adv_subnet
-	json_get_var adv_interface adv_interface
-	json_get_var adv_valid_lifetime adv_valid_lifetime
-	json_get_var adv_preferred_lifetime adv_preferred_lifetime
+	( proto_add_host_dependency "$cfg" 0.0.0.0 )
 
-	local wanif=$(find_6to4_wanif)
-	[ -z "$wanif" ] && {
-		tun_error "$cfg" "NO_WAN_LINK"
-		return
+	[ -z "$ipaddr" ] && {
+		local wanif
+		if ! network_find_wan wanif || ! network_get_ipaddr ipaddr "$wanif"; then
+			proto_notify_error "$cfg" "NO_WAN_LINK"
+			return
+		fi
 	}
 
-	. /lib/network/config.sh
-	local wancfg="$(find_config "$wanif")"
-	[ -z "$wancfg" ] && {
-		tun_error "$cfg" "NO_WAN_LINK"
-		return
-	}
-
-	# If local4 is unset, guess local IPv4 address from the
-	# interface used by the default route.
-	[ -z "$local4" ] && {
-		[ -n "$wanif" ] && local4=$(find_6to4_wanip "$wanif")
-	}
-
-	[ -z "$local4" ] && {
-		tun_error "$cfg" "NO_WAN_LINK"
-		return
-	}
-
-	test_6to4_rfc1918 "$local4" && {
-		tun_error "$cfg" "INVALID_LOCAL_ADDRESS"
+	test_6to4_rfc1918 "$ipaddr" && {
+		proto_notify_error "$cfg" "INVALID_LOCAL_ADDRESS"
 		return
 	}
 
 	# find our local prefix
-	local prefix6=$(find_6to4_prefix "$local4")
+	local prefix6=$(find_6to4_prefix "$ipaddr")
 	local local6="$prefix6::1"
 
 	proto_init_update "$link" 1
@@ -165,7 +133,7 @@ proto_6to4_setup() {
 	json_add_string mode sit
 	json_add_int mtu "${mtu:-1280}"
 	json_add_int ttl "${ttl:-64}"
-	json_add_string local "$local4"
+	json_add_string local "$ipaddr"
 	proto_close_tunnel
 
 	proto_send_update "$cfg"
@@ -182,22 +150,20 @@ proto_6to4_setup() {
 
 		for adv_interface in ${adv_interface:-lan}; do
 			local adv_ifname
-			config_get adv_ifname "${adv_interface:-lan}" ifname
+			network_get_device adv_ifname "${adv_interface:-lan}" || continue
 
-			grep -qs "^ *$adv_ifname:" /proc/net/dev && {
-				local subnet6="$(printf "%s:%x::1/64" "$prefix6" $adv_subnet)"
+			local subnet6="$(printf "%s:%x::1/64" "$prefix6" $adv_subnet)"
 
-				logger -t "$link" " * Advertising IPv6 subnet $subnet6 on ${adv_interface:-lan} ($adv_ifname)"
-				ip -6 addr add $subnet6 dev $adv_ifname
+			logger -t "$link" " * Advertising IPv6 subnet $subnet6 on ${adv_interface:-lan} ($adv_ifname)"
+			ip -6 addr add $subnet6 dev $adv_ifname
 
-				set_6to4_radvd_interface "$sid" "$adv_interface" "$mtu"
-				set_6to4_radvd_prefix    "$sid" "$adv_interface" \
-					"$wancfg" "$(printf "0:0:0:%x::/64" $adv_subnet)" \
-					"$adv_valid_lifetime" "$adv_preferred_lifetime"
+			set_6to4_radvd_interface "$sid" "$adv_interface" "$mtu"
+			set_6to4_radvd_prefix    "$sid" "$adv_interface" \
+				"$wancfg" "$(printf "0:0:0:%x::/64" $adv_subnet)" \
+				"$adv_valid_lifetime" "$adv_preferred_lifetime"
 
-				adv_subnets="${adv_subnets:+$adv_subnets }$adv_ifname:$subnet6"
-				adv_subnet=$(($adv_subnet + 1))
-			}
+			adv_subnets="${adv_subnets:+$adv_subnets }$adv_ifname:$subnet6"
+			adv_subnet=$(($adv_subnet + 1))
 		done
 
 		uci_set_state network "$cfg" adv_subnets "$adv_subnets"
@@ -221,7 +187,7 @@ proto_6to4_teardown() {
 }
 
 proto_6to4_init_config() {
-	no_device=1             
+	no_device=1
 	available=1
 
 	proto_config_add_string "ipaddr"

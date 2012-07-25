@@ -40,7 +40,6 @@ static const char *tl_wr2543n_part_probes[] = {
 
 static struct flash_platform_data tl_wr2543n_flash_data = {
 	.part_probes	= tl_wr2543n_part_probes,
-	.max_read_len	= 64,
 };
 
 static struct gpio_led tl_wr2543n_leds_gpio[] __initdata = {
@@ -113,6 +112,8 @@ static void __init tl_wr2543n_setup(void)
 					ARRAY_SIZE(tl_wr2543n_gpio_keys),
 					tl_wr2543n_gpio_keys);
 	ath79_register_usb();
+
+	ap9x_pci_setup_wmac_led_pin(0, 0);
 	ap91_pci_init(eeprom, mac);
 
 	ath79_init_mac(ath79_eth0_data.mac_addr, mac, -1);

@@ -30,6 +30,9 @@ status_led_off() {
 
 get_status_led() {
 	case $(ramips_board_name) in
+	3g-6200n)
+		status_led="edimax:green:power"
+		;;
 	argus-atp52b)
 		status_led="argus-atp52b:green:run"
 		;;
@@ -60,6 +63,9 @@ get_status_led() {
 	omni-emb)
 		status_led="emb:green:status"
 		;;
+	psr-680w)
+		status_led="psr-680w:red:wan"
+		;;
 	pwh2004)
 		status_led="pwh2004:green:power"
 		;;
@@ -69,7 +75,7 @@ get_status_led() {
 	rt-n10-plus)
 		status_led="asus:green:wps"
 		;;
-	rt-n56u)
+	rt-n56u | wl-330n | wl-330n3g)
 		status_led="asus:blue:power"
 		;;
 	sl-r7205)
@@ -80,6 +86,9 @@ get_status_led() {
 		;;
 	v22rw-2x2)
 		status_led="v22rw-2x2:green:security"
+		;;
+	w306r-v20)
+		status_led="w306r-v20:green:sys"
 		;;
 	w502u)
 		status_led="alfa:blue:wps"
@@ -98,6 +107,9 @@ get_status_led() {
 		;;
 	wr512-3gn)
 		status_led="wr512:green:wps"
+		;;
+	ur-336un)
+		status_led="ur336:green:wps"
 		;;
 	xdxrn502j)
 		status_led="xdxrn502j:green:power"

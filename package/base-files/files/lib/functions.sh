@@ -173,17 +173,17 @@ config_set() {
 }
 
 config_foreach() {
-	local function="$1"
+	local ___function="$1"
 	[ "$#" -ge 1 ] && shift
-	local type="$1"
+	local ___type="$1"
 	[ "$#" -ge 1 ] && shift
 	local section cfgtype
 
 	[ -z "$CONFIG_SECTIONS" ] && return 0
 	for section in ${CONFIG_SECTIONS}; do
 		config_get cfgtype "$section" TYPE
-		[ -n "$type" -a "x$cfgtype" != "x$type" ] && continue
-		eval "$function \"\$section\" \"\$@\""
+		[ -n "$___type" -a "x$cfgtype" != "x$___type" ] && continue
+		eval "$___function \"\$section\" \"\$@\""
 	done
 }
 
@@ -302,6 +302,7 @@ user_add() {
 	[ -f "${IPKG_INSTROOT}/etc/passwd" ] || return 1
 	[ -n "$IPKG_INSTROOT" ] || lock /var/lock/passwd
 	echo "${name}:x:${uid}:${gid}:${desc}:${home}:${shell}" >> ${IPKG_INSTROOT}/etc/passwd
+	echo "${name}:x:0:0:99999:7:::" >> ${IPKG_INSTROOT}/etc/shadow
 	rc=$?
 	[ -n "$IPKG_INSTROOT" ] || lock -u /var/lock/passwd
 	return $rc
