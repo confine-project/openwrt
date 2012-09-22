@@ -565,6 +565,38 @@ endef
 
 $(eval $(call KernelPackage,macvlan))
 
+define KernelPackage/macvtap
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=MAC-VTAP support
+  KCONFIG:=CONFIG_MACVTAP
+  FILES:=$(LINUX_DIR)/drivers/net/macvtap.ko
+  AUTOLOAD:=$(call AutoLoad,50,macvtap)
+endef
+
+define KernelPackage/macvtap/description
+ This adds a specialized tap character device driver that is based on the
+ MAC-VLAN network interface, called macvtap. A macvtap device can be
+ added in the same way as a macvlan device, using type macvlan, and then
+ be accessed through the tap user space interface.
+endef
+
+$(eval $(call KernelPackage,macvtap))
+
+define KernelPackage/veth
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Virtual ethernet pair device support
+  KCONFIG:=CONFIG_VETH
+  FILES:=$(LINUX_DIR)/drivers/net/veth.ko
+  AUTOLOAD:=$(call AutoLoad,50,veth)
+endef
+
+define KernelPackage/veth/description
+ This device is a local ethernet tunnel. Devices are created in pairs.
+ When one end receives the packet it appears on its pair and vice versa.
+endef
+
+$(eval $(call KernelPackage,veth))
+
 define KernelPackage/tulip
   TITLE:=Tulip family network device support
   DEPENDS:=@PCI_SUPPORT
