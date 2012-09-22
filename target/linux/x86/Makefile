@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -10,7 +10,7 @@ ARCH:=i386
 BOARD:=x86
 BOARDNAME:=x86
 FEATURES:=squashfs jffs2 ext4 vdi vmdk pcmcia targz
-SUBTARGETS=generic olpc xen_domu ep80579 net5501 kvm_guest geos alix2 thincan
+SUBTARGETS=generic olpc xen_domu ep80579 net5501 kvm_guest geos alix2 thincan lxc_host
 
 #LINUX_VERSION:=3.3
 #(Latest openwrt Trunk but without LINUX_VERSION=3.3 lxc patches from xavileon)
