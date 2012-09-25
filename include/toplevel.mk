@@ -17,6 +17,7 @@ else
   REVISION:=$(shell $(TOPDIR)/scripts/getver.sh)
 endif
 
+HOSTCC ?= gcc
 OPENWRTVERSION:=$(RELEASE)$(if $(REVISION), ($(REVISION)))
 export RELEASE
 export REVISION
@@ -25,6 +26,7 @@ export IS_TTY=$(shell tty -s && echo 1 || echo 0)
 export LD_LIBRARY_PATH:=$(subst ::,:,$(if $(LD_LIBRARY_PATH),$(LD_LIBRARY_PATH):)$(STAGING_DIR_HOST)/lib)
 export DYLD_LIBRARY_PATH:=$(subst ::,:,$(if $(DYLD_LIBRARY_PATH),$(DYLD_LIBRARY_PATH):)$(STAGING_DIR_HOST)/lib)
 export GIT_CONFIG_PARAMETERS='core.autocrlf=false'
+export MAKE_JOBSERVER=$(filter --jobserver%,$(MAKEFLAGS))
 
 # prevent perforce from messing with the patch utility
 unexport P4PORT P4USER P4CONFIG P4CLIENT
@@ -69,12 +71,12 @@ prepare-tmpinfo: FORCE
 	fi
 
 scripts/config/mconf:
-	@$(_SINGLE)$(SUBMAKE) -s -C scripts/config all
+	@$(_SINGLE)$(SUBMAKE) -s -C scripts/config all CC="$(HOSTCC)"
 
 $(eval $(call rdep,scripts/config,scripts/config/mconf))
 
 scripts/config/conf:
-	@$(_SINGLE)$(SUBMAKE) -s -C scripts/config conf
+	@$(_SINGLE)$(SUBMAKE) -s -C scripts/config conf CC="$(HOSTCC)"
 
 config: scripts/config/conf prepare-tmpinfo FORCE
 	$< Config.in
