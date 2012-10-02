@@ -360,13 +360,23 @@ menu "Global build settings"
 		bool
 		depends KERNEL_CGROUPS
 
+	config KERNEL_BLK_DEV_THROTTLING
+		bool
+		default y if KERNEL_BLK_CGROUP
+		depends KERNEL_BLK_CGROUP
+
 	config KERNEL_BLK_CGROUP
 		bool
 		depends KERNEL_CGROUPS
 
 	config KERNEL_DEBUG_BLK_CGROUP
 		bool
-		default n if KERNEL_CGROUPS
+		default KERNEL_DEBUG_INFO if KERNEL_CGROUPS
+		depends KERNEL_CGROUPS
+
+	config KERNEL_CGROUP_DEBUG
+		bool
+		default KERNEL_DEBUG_INFO if KERNEL_CGROUPS
 		depends KERNEL_CGROUPS
 
 	config KERNEL_CGROUPS
