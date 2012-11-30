@@ -54,6 +54,9 @@ get_status_led() {
 	bullet-m | rocket-m | nano-m | nanostation-m)
 		status_led="ubnt:green:link4"
 		;;
+	cap4200ag)
+		status_led="senao:green:pwr"
+		;;
 	db120)
 		status_led="db120:green:status"
 		;;
@@ -80,6 +83,9 @@ get_status_led() {
 	ls-sr71)
 		status_led="ubnt:green:d22"
 		;;
+	mr600)
+		status_led="mr600:orange:power"
+		;;
 	mzk-w04nu | \
 	mzk-w300nh)
 		status_led="planex:green:status"
@@ -88,6 +94,7 @@ get_status_led() {
 		status_led="nbg460n:green:power"
 		;;
 	om2p | \
+	om2p-hs | \
 	om2p-lc)
 		status_led="om2p:blue:power"
 		;;

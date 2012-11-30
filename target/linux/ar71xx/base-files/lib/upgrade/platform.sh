@@ -15,7 +15,7 @@ platform_find_partitions() {
 	while read dev size erasesize name; do
 		name=${name#'"'}; name=${name%'"'}
 		case "$name" in
-			vmlinux.bin.l7|vmlinux|kernel|linux|rootfs|filesystem)
+			vmlinux.bin.l7|vmlinux|kernel|linux|linux.bin|rootfs|filesystem)
 				if [ -z "$first" ]; then
 					first="$name"
 				else
@@ -31,7 +31,7 @@ platform_find_kernelpart() {
 	local part
 	for part in "${1%:*}" "${1#*:}"; do
 		case "$part" in
-			vmlinux.bin.l7|vmlinux|kernel|linux)
+			vmlinux.bin.l7|vmlinux|kernel|linux|linux.bin)
 				echo "$part"
 				break
 			;;
@@ -65,6 +65,10 @@ tplink_get_image_hwid() {
 	get_image "$@" | dd bs=4 count=1 skip=16 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
 }
 
+tplink_get_image_boot_size() {
+	get_image "$@" | dd bs=4 count=1 skip=37 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
+}
+
 platform_check_image() {
 	local board=$(ar71xx_board_name)
 	local magic="$(get_magic_word "$1")"
@@ -74,7 +78,8 @@ platform_check_image() {
 
 	case "$board" in
 	all0315n | \
-	all0258n )
+	all0258n | \
+	cap4200ag)
 		platform_check_image_allnet "$1" && return 0
 		return 1
 		;;
@@ -121,7 +126,8 @@ platform_check_image() {
 	whr-hp-gn | \
 	wlae-ag300n | \
 	nbg460n_550n_550nh | \
-	unifi )
+	unifi | \
+	unifi-outdoor )
 		[ "$magic" != "2705" ] && {
 			echo "Invalid image type."
 			return 1
@@ -134,9 +140,11 @@ platform_check_image() {
 		dir825b_check_image "$1" && return 0
 		;;
 
+	mr600 | \
 	om2p | \
+	om2p-hs | \
 	om2p-lc)
-		platform_check_image_om2p "$magic_long" "$1" && return 0
+		platform_check_image_openmesh "$magic_long" "$1" && return 0
 		return 1
 		;;
 	tl-mr11u | \
@@ -144,6 +152,7 @@ platform_check_image() {
 	tl-mr3040 | \
 	tl-mr3220 | \
 	tl-mr3420 | \
+	tl-wa7510n | \
 	tl-wa901nd | \
 	tl-wa901nd-v2 | \
 	tl-wdr4300 | \
@@ -170,6 +179,14 @@ platform_check_image() {
 
 		[ "$hwid" != "$imageid" ] && {
 			echo "Invalid image, hardware ID mismatch, hw:$hwid image:$imageid."
+			return 1
+		}
+
+		local boot_size
+
+		boot_size=$(tplink_get_image_boot_size "$1")
+		[ "$boot_size" != "00000000" ] && {
+			echo "Invalid image, it contains a bootloader."
 			return 1
 		}
 
@@ -200,7 +217,8 @@ platform_check_image() {
 	all0305 | \
 	eap7660d | \
 	ja76pf | \
-	ja76pf2)
+	ja76pf2 | \
+	jwap003)
 		[ "$magic" != "4349" ] && {
 			echo "Invalid image. Use *-sysupgrade.bin files on this board"
 			return 1
@@ -235,7 +253,8 @@ platform_do_upgrade() {
 	pb42 | \
 	pb44 | \
 	ja76pf | \
-	ja76pf2)
+	ja76pf2 | \
+	jwap003)
 		platform_do_upgrade_combined "$ARGV"
 		;;
 	all0258n )
@@ -244,13 +263,18 @@ platform_do_upgrade() {
 	all0315n )
 		platform_do_upgrade_allnet "0x9f080000" "$ARGV"
 		;;
+	cap4200ag)
+		platform_do_upgrade_allnet "0xbf0a0000" "$ARGV"
+		;;
 	dir-825-b1 |\
 	tew-673gru)
 		platform_do_upgrade_dir825b "$ARGV"
 		;;
+	mr600 | \
 	om2p | \
+	om2p-hs | \
 	om2p-lc)
-		platform_do_upgrade_om2p "$ARGV"
+		platform_do_upgrade_openmesh "$ARGV"
 		;;
 	*)
 		default_do_upgrade "$ARGV"

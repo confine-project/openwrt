@@ -189,6 +189,9 @@ ar71xx_board_detect() {
 	*AW-NR580)
 		name="aw-nr580"
 		;;
+	*CAP4200AG)
+		name="cap4200ag"
+		;;
 	*"DB120 reference board")
 		name="db120"
 		;;
@@ -225,6 +228,9 @@ ar71xx_board_detect() {
 	*LS-SR71)
 		name="ls-sr71"
 		;;
+	*MR600)
+		name="mr600"
+		;;
 	*MZK-W04NU)
 		name="mzk-w04nu"
 		;;
@@ -236,6 +242,9 @@ ar71xx_board_detect() {
 		;;
 	*OM2P)
 		name="om2p"
+		;;
+	*"OM2P HS")
+		name="om2p-hs"
 		;;
 	*"OM2P LC")
 		name="om2p-lc"
@@ -260,6 +269,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD 433UAH")
 		name="rb-433u"
+		;;
+	*"RouterBOARD 435G")
+		name="rb-435g"
 		;;
 	*"RouterBOARD 450")
 		name="rb-450"
@@ -336,6 +348,9 @@ ar71xx_board_detect() {
 	*TL-MR3420)
 		name="tl-mr3420"
 		;;
+	*TL-WA7510N)
+		name="tl-wa7510n"
+		;;
 	*TL-WA901ND)
 		name="tl-wa901nd"
 		;;
@@ -380,6 +395,9 @@ ar71xx_board_detect() {
 		;;
 	*WLAE-AG300N)
 		name="wlae-ag300n"
+		;;
+	*"UniFiAP Outdoor")
+		name="unifi-outdoor"
 		;;
 	*WP543)
 		name="wp543"

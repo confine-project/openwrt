@@ -36,8 +36,11 @@ get_status_led() {
 	argus-atp52b)
 		status_led="argus-atp52b:green:run"
 		;;
-	dir-300-b1 | dir-600-b1 | dir-600-b2 | dir-615-h1 | dir-620-a1)
+	dir-300-b1 | dir-600-b1 | dir-600-b2 | dir-615-h1 | dir-615-d | dir-620-a1)
 		status_led="d-link:green:status"
+		;;
+	dir-645)
+		status_led="d-link:green:wps"
 		;;
 	dap-1350)
 		status_led="d-link:blue:power"
@@ -84,6 +87,10 @@ get_status_led() {
 		;;
 	sl-r7205)
 		status_led="sl-r7205:green:status"
+		;;
+	tew-691gr|\
+	tew-692gr)
+		status_led="trendnet:green:wps"
 		;;
 	v11st-fe)
 		status_led="v11st-fe:green:status"
