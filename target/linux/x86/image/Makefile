@@ -23,7 +23,7 @@ endif
 USE_ATKBD = generic kvm_guest
 
 ifneq ($(strip $(foreach subtarget,$(USE_ATKBD),$(CONFIG_TARGET_x86_$(subtarget)))),)
-  GRUB2_MODULES += at_keyboard
+  GRUB2_MODULES +=
 endif
 
 ifneq ($(CONFIG_X86_GRUB_SERIAL),)
