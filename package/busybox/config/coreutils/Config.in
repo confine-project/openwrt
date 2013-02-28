@@ -243,7 +243,7 @@ config BUSYBOX_CONFIG_FEATURE_DD_THIRD_STATUS_LINE
 
 config BUSYBOX_CONFIG_FEATURE_DD_IBS_OBS
 	bool "Enable ibs, obs and conv options"
-	default n
+	default y
 	depends on BUSYBOX_CONFIG_DD
 	help
 	  Enables support for writing a certain number of bytes in and out,
@@ -375,7 +375,7 @@ config BUSYBOX_CONFIG_FOLD
 
 config BUSYBOX_CONFIG_FSYNC
 	bool "fsync"
-	default n
+	default y
 	help
 	  fsync is used to flush file-related cached blocks to disk.
 

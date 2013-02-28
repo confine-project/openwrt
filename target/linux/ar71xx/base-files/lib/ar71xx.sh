@@ -41,6 +41,8 @@ wndr3700_board_detect() {
 		model=$(ar71xx_get_mtd_offset_size_format art 56 10 %c)
 		if [ -z "$model" ] || [ "$model" = $'\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff' ]; then
 			machine="NETGEAR WNDR3700v2"
+		elif [ -z "$model" ] || [ "$model" = $'\xff\xff\xff\xff\xff\xff\xff\xff\xffN' ]; then
+			machine="NETGEAR WNDRMAC"
 		else
 			machine="NETGEAR $model"
 		fi
@@ -97,6 +99,9 @@ tplink_board_detect() {
 	"094100"*)
 		model="TP-Link TL-WR941N/ND"
 		;;
+	"104100"*)
+		model="TP-Link TL-WR1041N/ND"
+		;;
 	"104300"*)
 		model="TP-Link TL-WR1043N/ND"
 		;;
@@ -109,11 +114,23 @@ tplink_board_detect() {
 	"302000"*)
 		model="TP-Link TL-MR3020"
 		;;
+	"304000"*)
+		model="TP-Link TL-MR3040"
+		;;
 	"322000"*)
 		model="TP-Link TL-MR3220"
 		;;
 	"342000"*)
 		model="TP-Link TL-MR3420"
+		;;
+	"360000"*)
+		model="TP-Link TL-WDR3600"
+		;;
+	"430000"*)
+		model="TP-Link TL-WDR4300"
+		;;
+	"431000"*)
+		model="TP-Link TL-WDR4310"
 		;;
 	*)
 		hwver=""
@@ -142,6 +159,12 @@ ar71xx_board_detect() {
 	*ALL0258N)
 		name="all0258n"
 		;;
+	*ALL0305)
+		name="all0305"
+		;;
+	*ALL0315N)
+		name="all0315n"
+		;;
 	*AP113)
 		name="ap113"
 		;;
@@ -150,6 +173,9 @@ ar71xx_board_detect() {
 		;;
 	*AP121-MINI)
 		name="ap121-mini"
+		;;
+	*"AP136 reference board")
+		name="ap136"
 		;;
 	*AP81)
 		name="ap81"
@@ -162,6 +188,9 @@ ar71xx_board_detect() {
 		;;
 	*AW-NR580)
 		name="aw-nr580"
+		;;
+	*CAP4200AG)
+		name="cap4200ag"
 		;;
 	*"DB120 reference board")
 		name="db120"
@@ -199,6 +228,9 @@ ar71xx_board_detect() {
 	*LS-SR71)
 		name="ls-sr71"
 		;;
+	*MR600)
+		name="mr600"
+		;;
 	*MZK-W04NU)
 		name="mzk-w04nu"
 		;;
@@ -211,10 +243,16 @@ ar71xx_board_detect() {
 	*OM2P)
 		name="om2p"
 		;;
+	*"OM2P HS")
+		name="om2p-hs"
+		;;
+	*"OM2P LC")
+		name="om2p-lc"
+		;;
 	*PB42)
 		name="pb42"
 		;;
-	*PB44)
+	*"PB44 reference board")
 		name="pb44"
 		;;
 	*PB92)
@@ -231,6 +269,9 @@ ar71xx_board_detect() {
 		;;
 	*"RouterBOARD 433UAH")
 		name="rb-433u"
+		;;
+	*"RouterBOARD 435G")
+		name="rb-435g"
 		;;
 	*"RouterBOARD 450")
 		name="rb-450"
@@ -250,6 +291,18 @@ ar71xx_board_detect() {
 	*"RouterBOARD 750GL")
 		name="rb-750gl"
 		;;
+	*"RouterBOARD 751")
+		name="rb-751"
+		;;
+	*"RouterBOARD 751G")
+		name="rb-751g"
+		;;
+	*"RouterBOARD 2011L")
+		name="rb-2011l"
+		;;
+	*"RouterBOARD 2011UAS-2HnD")
+		name="rb-2011uas-2hnd"
+		;;
 	*"Rocket M")
 		name="rocket-m"
 		;;
@@ -268,6 +321,12 @@ ar71xx_board_detect() {
 	*TEW-673GRU)
 		name="tew-673gru"
 		;;
+	*TEW-712BR)
+		name="tew-712br"
+		;;
+	*"TL-WR1041N v2")
+		name="tl-wr1041n-v2"
+		;;
 	*TL-WR1043ND)
 		name="tl-wr1043nd"
 		;;
@@ -280,17 +339,26 @@ ar71xx_board_detect() {
 	*TL-MR3020)
 		name="tl-mr3020"
 		;;
+	*TL-MR3040)
+		name="tl-mr3040"
+		;;
 	*TL-MR3220)
 		name="tl-mr3220"
 		;;
 	*TL-MR3420)
 		name="tl-mr3420"
 		;;
+	*TL-WA7510N)
+		name="tl-wa7510n"
+		;;
 	*TL-WA901ND)
 		name="tl-wa901nd"
 		;;
 	*"TL-WA901ND v2")
 		name="tl-wa901nd-v2"
+		;;
+	*"TL-WDR3600/4300/4310")
+		name="tl-wdr4300"
 		;;
 	*TL-WR741ND)
 		name="tl-wr741nd"
@@ -303,6 +371,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR841N/ND v7")
 		name="tl-wr841n-v7"
+		;;
+	*"TL-WR841N/ND v8")
+		name="tl-wr841n-v8"
 		;;
 	*TL-WR941ND)
 		name="tl-wr941nd"
@@ -321,6 +392,12 @@ ar71xx_board_detect() {
 		;;
 	*WHR-HP-GN)
 		name="whr-hp-gn"
+		;;
+	*WLAE-AG300N)
+		name="wlae-ag300n"
+		;;
+	*"UniFiAP Outdoor")
+		name="unifi-outdoor"
 		;;
 	*WP543)
 		name="wp543"
@@ -360,6 +437,12 @@ ar71xx_board_detect() {
 		;;
 	*ZCN-1523H-5)
 		name="zcn-1523h-5"
+		;;
+	*EmbWir-Dorin)
+		name="ew-dorin"
+		;;
+	*EmbWir-Dorin-Router)
+		name="ew-dorin-router"
 		;;
 	esac
 

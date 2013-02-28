@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2011 OpenWrt.org
+# Copyright (C) 2006-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,17 +9,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=comgt
 PKG_VERSION:=0.32
-PKG_RELEASE:=9
+PKG_RELEASE:=21
 
 PKG_SOURCE:=$(PKG_NAME).$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=@SF/comgt
 PKG_MD5SUM:=db2452680c3d953631299e331daf49ef
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME).$(PKG_VERSION)
-
-PKG_CONFIG_DEPENDS:=CONFIG_USE_NETIFD
-COMGT_VARIANT:=$(if $(CONFIG_USE_NETIFD),netifd,old)
-FILES_DIR:=./files-$(COMGT_VARIANT)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -45,22 +41,6 @@ define Build/Compile
 		comgt
 endef
 
-define Package/comgt/install/netifd
-	$(INSTALL_DIR) $(1)/lib/netifd/proto
-	$(INSTALL_BIN) $(FILES_DIR)/3g.sh $(1)/lib/netifd/proto/3g.sh
-endef
-
-define Package/comgt/install/old
-	$(INSTALL_DIR) $(1)/etc/ppp
-	$(INSTALL_BIN) $(FILES_DIR)/3g.connect $(1)/etc/ppp/3g.connect
-	$(INSTALL_DIR) $(1)/lib/network
-	$(INSTALL_BIN) $(FILES_DIR)/3g.sh $(1)/lib/network/3g.sh
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/button
-	$(INSTALL_DATA) $(FILES_DIR)/3g.button $(1)/etc/hotplug.d/button/05-3g
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_DATA) $(FILES_DIR)/3g.iface $(1)/etc/hotplug.d/iface/05-3g
-endef
-
 define Package/comgt/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/comgt $(1)/usr/bin/
@@ -77,8 +57,9 @@ define Package/comgt/install
 	$(INSTALL_DATA) ./files/getcnum.gcom $(1)/etc/gcom/getcnum.gcom
 	$(INSTALL_DATA) ./files/getimsi.gcom $(1)/etc/gcom/getimsi.gcom
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/tty
-	$(INSTALL_DATA) $(FILES_DIR)/3g.usb $(1)/etc/hotplug.d/tty/30-3g
-	$(Package/comgt/install/$(COMGT_VARIANT))
+	$(INSTALL_DATA) ./files/3g.usb $(1)/etc/hotplug.d/tty/30-3g
+	$(INSTALL_DIR) $(1)/lib/netifd/proto
+	$(INSTALL_BIN) ./files/3g.sh $(1)/lib/netifd/proto/3g.sh
 endef
 
 $(eval $(call BuildPackage,comgt))

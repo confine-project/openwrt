@@ -43,13 +43,10 @@ endef
 define KernelPackage/ata-ahci
   TITLE:=AHCI Serial ATA support
   KCONFIG:=CONFIG_SATA_AHCI
-  FILES:=$(LINUX_DIR)/drivers/ata/ahci.ko
-  ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,2.6.35)),1)
-    FILES += $(LINUX_DIR)/drivers/ata/libahci.ko
-    AUTOLOAD:=$(call AutoLoad,41,libahci ahci,1)
-  else
-    AUTOLOAD:=$(call AutoLoad,41,ahci,1)
-  endif
+  FILES:= \
+    $(LINUX_DIR)/drivers/ata/ahci.ko \
+    $(LINUX_DIR)/drivers/ata/libahci.ko
+  AUTOLOAD:=$(call AutoLoad,41,libahci ahci,1)
   $(call AddDepends/ata)
 endef
 
@@ -343,17 +340,8 @@ $(call KernelPackage/md/Depends,)
 	$(LINUX_DIR)/crypto/async_tx/async_xor.ko \
 	$(LINUX_DIR)/crypto/async_tx/async_pq.ko \
 	$(LINUX_DIR)/crypto/async_tx/async_raid6_recov.ko \
-	$(LINUX_DIR)/drivers/md/raid456.ko
-  # Additional files with kernel-dependent locations or presence
-  # For Linux >= 2.6.36
-  ifeq ($(strip $(call CompareKernelPatchVer,$(KERNEL_PATCHVER),ge,2.6.36)), 1)
-    FILES+= \
+	$(LINUX_DIR)/drivers/md/raid456.ko \
 	$(LINUX_DIR)/lib/raid6/raid6_pq.ko
-  # For Linux < 2.6.36
-  else
-    FILES+= \
-	$(LINUX_DIR)/drivers/md/raid6_pq.ko
-  endif
   AUTOLOAD:=$(call AutoLoad,28, xor async_tx async_memcpy async_xor raid6_pq async_pq async_raid6_recov raid456)
 endef
 
@@ -501,74 +489,9 @@ endef
 $(eval $(call KernelPackage,ide-it821x))
 
 
-define KernelPackage/cs5535
-  TITLE:=NSC/AMD CS5535 chipset support
-  DEPENDS:=@TARGET_x86
-  KCONFIG:=CONFIG_BLK_DEV_CS5535
-  FILES=$(LINUX_DIR)/drivers/ide/cs5535.ko
-  AUTOLOAD:=$(call AutoLoad,30,cs5535,1)
-  $(call AddDepends/ide)
-endef
-
-define KernelPackage/cs5535/description
-  Kernel module for the NSC/AMD CS5535 companion chip
-endef
-
-$(eval $(call KernelPackage,cs5535))
-
-
-define KernelPackage/cs5536
-  TITLE:=AMD CS5536 chipset support
-  DEPENDS:=@TARGET_x86
-  KCONFIG:=CONFIG_BLK_DEV_CS5536
-  FILES=$(LINUX_DIR)/drivers/ide/cs5536.ko
-  AUTOLOAD:=$(call AutoLoad,30,cs5536,1)
-  $(call AddDepends/ide)
-endef
-
-define KernelPackage/cs5536/description
-  Kernel module for the AMD CS5536 Geode LX companion chip
-endef
-
-$(eval $(call KernelPackage,cs5536))
-
-
-define KernelPackage/pata-cs5535
-  TITLE:=CS5535 PATA support
-  DEPENDS:=@TARGET_x86 @PCI_SUPPORT
-  KCONFIG:=CONFIG_PATA_CS5535
-  FILES=$(LINUX_DIR)/drivers/ata/pata_cs5535.ko
-  AUTOLOAD:=$(call AutoLoad,30,pata_cs5535,1)
-  $(call AddDepends/ata)
-endef
-
-define KernelPackage/pata-cs5535/description
-  Kernel module for the NSC/AMD CS5535 companion chip
-endef
-
-$(eval $(call KernelPackage,pata-cs5535))
-
-
-define KernelPackage/pata-cs5536
-  TITLE:=CS5536 PATA support
-  DEPENDS:=@TARGET_x86 @PCI_SUPPORT
-  KCONFIG:=CONFIG_PATA_CS5536
-  FILES=$(LINUX_DIR)/drivers/ata/pata_cs5536.ko
-  AUTOLOAD:=$(call AutoLoad,30,pata_cs5536,1)
-  $(call AddDepends/ata)
-endef
-
-define KernelPackage/pata-cs5536/description
-  Kernel module for the AMD CS5536 Geode LX companion chip
-endef
-
-$(eval $(call KernelPackage,pata-cs5536))
-
-
 define KernelPackage/libsas
   SUBMENU:=$(BLOCK_MENU)
   TITLE:=SAS Domain Transport Attributes
-  DEPENDS:=@TARGET_x86
   KCONFIG:=CONFIG_SCSI_SAS_LIBSAS \
 	CONFIG_SCSI_SAS_ATTRS \
 	CONFIG_SCSI_SAS_ATA=y \
@@ -608,12 +531,10 @@ define KernelPackage/mvsas
   SUBMENU:=$(BLOCK_MENU)
   TITLE:=Marvell 88SE6440 SAS/SATA driver
   DEPENDS:=@TARGET_x86 +kmod-libsas
-  KCONFIG:=CONFIG_SCSI_MVSAS
-  ifneq ($(CONFIG_LINUX_2_6_30),)
-	FILES:=$(LINUX_DIR)/drivers/scsi/mvsas.ko
-  else
-	FILES:=$(LINUX_DIR)/drivers/scsi/mvsas/mvsas.ko
-  endif
+  KCONFIG:= \
+	CONFIG_SCSI_MVSAS \
+	CONFIG_SCSI_MVSAS_TASKLET=n
+  FILES:=$(LINUX_DIR)/drivers/scsi/mvsas/mvsas.ko
   AUTOLOAD:=$(call AutoLoad,40,mvsas,1)
 endef
 

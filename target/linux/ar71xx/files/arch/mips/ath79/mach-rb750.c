@@ -9,17 +9,25 @@
  */
 
 #include <linux/export.h>
+#include <linux/pci.h>
+#include <linux/ath9k_platform.h>
 #include <linux/platform_device.h>
 #include <linux/phy.h>
 #include <linux/ar8216_platform.h>
+#include <linux/rle.h>
+#include <linux/routerboot.h>
 
 #include <asm/mach-ath79/ar71xx_regs.h>
 #include <asm/mach-ath79/ath79.h>
+#include <asm/mach-ath79/irq.h>
 #include <asm/mach-ath79/mach-rb750.h>
 
 #include "common.h"
+#include "dev-ap9x-pci.h"
+#include "dev-usb.h"
 #include "dev-eth.h"
 #include "machtypes.h"
+#include "routerboot.h"
 
 static struct rb750_led_data rb750_leds[] = {
 	{
@@ -178,7 +186,7 @@ static struct ar8327_platform_data rb750gr3_ar8327_data = {
 	.pad0_cfg = &rb750gr3_ar8327_pad0_cfg,
 	.cpuport_cfg = {
 		.force_link = 1,
-		.speed = AR8327_PORT_SPEED_100,
+		.speed = AR8327_PORT_SPEED_1000,
 		.duplex = 1,
 		.txpause = 1,
 		.rxpause = 1,
@@ -253,6 +261,7 @@ static void __init rb750gr3_setup(void)
 	ath79_init_mac(ath79_eth0_data.mac_addr, ath79_mac_base, 0);
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = BIT(0);
+	ath79_eth0_pll_data.pll_1000 = 0x62000000;
 
 	ath79_register_eth(0);
 
@@ -270,3 +279,60 @@ static void __init rb750gr3_setup(void)
 
 MIPS_MACHINE(ATH79_MACH_RB_750G_R3, "750Gr3", "MikroTik RouterBOARD 750GL",
 	     rb750gr3_setup);
+
+#define RB751_HARDCONFIG	0x1f00b000
+#define RB751_HARDCONFIG_SIZE	0x1000
+#define RB751_MAC_ADDRESS_OFFSET 0xE80
+
+static void __init rb751_wlan_setup(void)
+{
+	u8 *hardconfig = (u8 *) KSEG1ADDR(RB751_HARDCONFIG);
+	struct ath9k_platform_data *wmac_data;
+	u16 tag_len;
+	u8 *tag;
+	int err;
+
+	wmac_data = ap9x_pci_get_wmac_data(0);
+	if (!wmac_data) {
+		pr_err("rb75x: unable to get address of wlan data\n");
+		return;
+	}
+
+	ap9x_pci_setup_wmac_led_pin(0, 9);
+
+	err = routerboot_find_tag(hardconfig, RB751_HARDCONFIG_SIZE,
+				  RB_ID_WLAN_DATA, &tag, &tag_len);
+	if (err) {
+		pr_err("rb75x: no calibration data found\n");
+		return;
+	}
+
+	err = rle_decode(tag, tag_len, (unsigned char *) wmac_data->eeprom_data,
+			 sizeof(wmac_data->eeprom_data), NULL, NULL);
+	if (err) {
+		pr_err("rb75x: unable to decode wlan eeprom data\n");
+		return;
+	}
+
+	ap91_pci_init(NULL, hardconfig + RB751_MAC_ADDRESS_OFFSET);
+}
+
+static void __init rb751_setup(void)
+{
+	rb750_setup();
+	ath79_register_usb();
+	rb751_wlan_setup();
+}
+
+MIPS_MACHINE(ATH79_MACH_RB_751, "751", "MikroTik RouterBOARD 751",
+	     rb751_setup);
+
+static void __init rb751g_setup(void)
+{
+	rb750gr3_setup();
+	ath79_register_usb();
+	rb751_wlan_setup();
+}
+
+MIPS_MACHINE(ATH79_MACH_RB_751G, "751g", "MikroTik RouterBOARD 751G",
+	     rb751g_setup);

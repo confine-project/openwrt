@@ -19,6 +19,7 @@ PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE_SUBDIR:=$(if $(PKG_BRANCH),$(PKG_BRANCH),madwifi-trunk)-$(PKG_VERSION)
 PKG_SOURCE_URL:=http://madwifi-project.org/svn/madwifi/$(if $(PKG_BRANCH),branches/$(PKG_BRANCH),trunk)
 PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.gz
+PKG_MIRROR_MD5SUM:=086b026d1c1561be8a949b79b0931404
 
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(PKG_BRANCH),$(PKG_BRANCH),madwifi-trunk)-$(PKG_VERSION)
 
@@ -161,7 +162,7 @@ define KernelPackage/madwifi
   SUBMENU:=Wireless Drivers
   TITLE:=Driver for Atheros wireless chipsets
   URL:=http://madwifi-project.org/
-  DEPENDS:=+wireless-tools @PCI_SUPPORT @(!(TARGET_avr32||TARGET_cobalt||TARGET_ep93xx||TARGET_etrax||TARGET_octeon||TARGET_pxcab||TARGET_sibyte||LINUX_3_1||LINUX_3_2)||BROKEN) +@DRIVER_WEXT_SUPPORT
+  DEPENDS:=+wireless-tools @PCI_SUPPORT @(!(TARGET_avr32||TARGET_cobalt||TARGET_ep93xx||TARGET_etrax||TARGET_octeon||TARGET_pxcab||TARGET_sibyte)||BROKEN) +@DRIVER_WEXT_SUPPORT
   FILES:=$(MADWIFI_FILES)
   AUTOLOAD:=$(call AutoLoad,50,$(MADWIFI_AUTOLOAD))
   MENU:=1
@@ -224,6 +225,10 @@ define Build/Prepare
 		$(PKG_BUILD_DIR)/hal/public/*.inc
 	$(SED) 's,march=armv4,march=armv5te,' \
 		$(PKG_BUILD_DIR)/hal/public/xscale*.inc
+	$(SED) 's,march=armv6j,march=armv6k,' \
+		$(PKG_BUILD_DIR)/hal/public/arm11*.inc
+	$(SED) 's,mtune=arm1136j-s,mtune=mpcore,' \
+		$(PKG_BUILD_DIR)/hal/public/arm11*.inc
 endef
 
 ifeq ($(findstring AHB,$(BUS)),AHB)

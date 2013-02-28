@@ -1,16 +1,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libubox
-PKG_VERSION:=2011-11-17
+PKG_VERSION:=2012-10-31.1
 PKG_RELEASE=$(PKG_SOURCE_VERSION)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=git://nbd.name/luci2/libubox.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=f565a7af429bd2d5fa4db9196724bee42d1f597b
+PKG_SOURCE_VERSION:=407f7a0bb3272ee03f2eb05391ce8b94238fa92e
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_MIRROR_MD5SUM:=ce8163174091ee4d0f3de510a38f53bb
+PKG_MIRROR_MD5SUM:=5eb506d65853b9755cb37e5667c0a759
 CMAKE_INSTALL:=1
+
+PKG_BUILD_DEPENDS:=lua
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -26,7 +28,7 @@ define Package/libblobmsg-json
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=blobmsg <-> json conversion library
-  DEPENDS:=+libjson
+  DEPENDS:=+libjson +libubox
 endef
 
 define Package/jshn
@@ -41,6 +43,8 @@ define Package/jshn/description
 endef
 
 TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
+CMAKE_OPTIONS = \
+	-DLUAPATH=/usr/lib/lua
 
 define Package/libubox/install
 	$(INSTALL_DIR) $(1)/lib/

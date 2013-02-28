@@ -10,7 +10,7 @@ TOPDIR:=${CURDIR}
 LC_ALL:=C
 LANG:=C
 export TOPDIR LC_ALL LANG
-export KBUILD_VERBOSE=99
+export OPENWRT_VERBOSE=s
 all: help
 
 include $(TOPDIR)/include/host.mk
@@ -126,12 +126,22 @@ package_index: FORCE
 package_install: FORCE
 	@echo
 	@echo Installing packages...
+	$(OPKG) install $(PACKAGE_DIR)/libc_*.ipk
+	$(OPKG) install $(PACKAGE_DIR)/kernel_*.ipk
 	$(OPKG) install $(BUILD_PACKAGES)
 	rm -f $(TARGET_DIR)/usr/lib/opkg/lists/*
 
 copy_files: FORCE
 	@echo
 	@echo Copying extra files
+	@( cd $(USER_FILES); find -type f ) | \
+		( cd $(TARGET_DIR); while :; do \
+			read FILE; \
+			[ -z "$$FILE" ] && break; \
+			[ -L "$$FILE" ] || continue; \
+			echo "Removing symlink $(TARGET_DIR)/$$FILE"; \
+			rm -f "$$FILE"; \
+		done; )
 	$(CP) $(USER_FILES)/* $(TARGET_DIR)/
 
 package_postinst: FORCE

@@ -27,6 +27,17 @@ endef
 $(eval $(call Profile,TLMR3020))
 
 
+define Profile/TLMR3040
+	NAME:=TP-LINK TL-MR3040
+	PACKAGES:=kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+endef
+
+define Profile/TLMR3040/Description
+	Package set optimized for the TP-LINK TL-MR3040.
+endef
+$(eval $(call Profile,TLMR3040))
+
+
 define Profile/TLMR3220
 	NAME:=TP-LINK TL-MR3220
 	PACKAGES:=kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
@@ -71,6 +82,16 @@ define Profile/TLWA701/Description
 endef
 $(eval $(call Profile,TLWA701))
 
+define Profile/TLWA7510
+	NAME:=TP-LINK TL-WA7510N
+	PACKAGES:=
+endef
+
+define Profile/TLWA7510/Description
+	Package set optimized for the TP-LINK TL-WA7510N.
+endef
+$(eval $(call Profile,TLWA7510))
+
 
 define Profile/TLWA901
 	NAME:=TP-LINK TL-WA901N/ND
@@ -81,6 +102,17 @@ define Profile/TLWA901/Description
 	Package set optimized for the TP-LINK TL-WA901N/ND.
 endef
 $(eval $(call Profile,TLWA901))
+
+
+define Profile/TLWDR4300
+	NAME:=TP-LINK TL-WDR3600/4300/4310
+	PACKAGES:=kmod-usb-core kmod-usb2 kmod-ledtrig-usbdev
+endef
+
+define Profile/TLWDR4300/Description
+	Package set optimized for the TP-LINK TL-WDR3600/4300/4310.
+endef
+$(eval $(call Profile,TLWDR4300))
 
 
 define Profile/TLWR740
@@ -147,6 +179,17 @@ define Profile/TLWR941/Description
 	Package set optimized for the TP-LINK TL-WR941N/ND.
 endef
 $(eval $(call Profile,TLWR941))
+
+
+define Profile/TLWR1041
+	NAME:=TP-LINK TL-WR1041N
+	PACKAGES:=
+endef
+
+define Profile/TLWR1041/Description
+	Package set optimized for the TP-LINK TL-WR1041N/ND.
+endef
+$(eval $(call Profile,TLWR1041))
 
 
 define Profile/TLWR1043

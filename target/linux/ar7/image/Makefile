@@ -1,4 +1,4 @@
-# 
+#
 # Copyright (C) 2006-2010 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
@@ -41,7 +41,9 @@ define Image/Prepare
 		$(LOADER_MAKEOPTS) \
 		clean compile
 	$(OBJCOPY_SREC) $(KDIR)/loader.elf $(KDIR)/loader.srec
+	$(OBJCOPY_SREC) $(KDIR)/vmlinux.elf $(KDIR)/vmlinux.srec
 	srec2bin $(KDIR)/loader.srec $(KDIR)/loader.bin
+	srec2bin $(KDIR)/vmlinux.srec $(KDIR)/vmlinux.bin
 endef
 
 define align/jffs2-64k
@@ -53,7 +55,6 @@ bs=131072 conv=sync
 endef
 
 define align/squashfs
-bs=65536 conv=sync
 endef
 
 define Image/Build/CyberTAN
@@ -75,10 +76,14 @@ endef
 #endef
 
 define Image/Build/EVA
-	$(STAGING_DIR_HOST)/bin/lzma2eva $(EVA_LOADADDR) 0x$${shell $(TARGET_CROSS)nm $(KDIR)/linux-*/vmlinux | grep kernel_entry | cut -d' ' -f1} $(KDIR)/vmlinux.lzma $(KDIR)/loader.eva 
+	$(STAGING_DIR_HOST)/bin/lzma2eva $(EVA_LOADADDR) 0x$${shell $(TARGET_CROSS)nm $(KDIR)/linux-*/vmlinux | grep -w kernel_entry | cut -d' ' -f1} $(KDIR)/vmlinux.lzma $(KDIR)/loader.eva
 	dd if=$(KDIR)/loader.eva $(call align/$(1)) > $(BIN_DIR)/openwrt-$(2)-$(KERNEL)-$(1).bin
-	cat $(KDIR)/root.$(1) >> $(BIN_DIR)/openwrt-$(2)-$(KERNEL)-$(1).bin 
+	cat $(KDIR)/root.$(1) >> $(BIN_DIR)/openwrt-$(2)-$(KERNEL)-$(1).bin
 	$(call prepare_generic_squashfs,$(BIN_DIR)/openwrt-$(2)-$(KERNEL)-$(1).bin)
+endef
+
+define Image/Build/Initramfs
+	$(CP) $(KDIR)/vmlinux.bin $(BIN_DIR)/$(IMG_PREFIX)-initramfs.bin
 endef
 
 define Image/Build
@@ -104,6 +109,9 @@ define Image/Build
 #	$(call Image/Build/sErCoMm,$(1),jdr454wb,$(1))
 	$(call Image/Build/EVA,$(1),EVA)
 	$(call Image/Build/Titan,$(1),Titan,Titan,$(1))
+ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),y)
+	$(call Image/Build/Initramfs)
+endif
 endef
 
 $(eval $(call BuildImage))

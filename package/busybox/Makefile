@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
 PKG_VERSION:=1.19.4
-PKG_RELEASE:=1
+PKG_RELEASE:=5
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
@@ -17,13 +17,19 @@ PKG_SOURCE_URL:=http://www.busybox.net/downloads \
 		http://distfiles.gentoo.org/distfiles/
 PKG_MD5SUM:=9c0cae5a0379228e7b55e5b29528df8e
 
-PKG_BUILD_DEPENDS:=BUSYBOX_USE_LIBRPC:librpc
+PKG_BUILD_DEPENDS:=BUSYBOX_CONFIG_FEATURE_HAVE_RPC:librpc
 PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
 ifeq ($(DUMP),)
   STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell $(SH_FUNC) grep '^CONFIG_BUSYBOX_' $(TOPDIR)/.config | md5s)
+endif
+
+ifneq ($(findstring c,$(OPENWRT_VERBOSE)),)
+  BB_MAKE_VERBOSE := V=1
+else
+  BB_MAKE_VERBOSE :=
 endif
 
 init-y :=
@@ -37,7 +43,7 @@ define Package/busybox
   MAINTAINER:=Nicolas Thill <nico@openwrt.org>
   TITLE:=Core utilities for embedded Linux
   URL:=http://busybox.net/
-  DEPENDS:=+BUSYBOX_USE_LIBRPC:librpc
+  DEPENDS:=+BUSYBOX_CONFIG_FEATURE_HAVE_RPC:librpc
   MENU:=1
 endef
 
@@ -58,6 +64,7 @@ define Build/Configure
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		KBUILD_HAVE_NLS=no \
 		ARCH="$(ARCH)" \
+		$(BB_MAKE_VERBOSE) \
 		oldconfig
 endef
 
@@ -66,14 +73,14 @@ ifdef CONFIG_GCC_VERSION_LLVM
 endif
 
 LDLIBS:=m crypt
-ifdef CONFIG_BUSYBOX_USE_LIBRPC
+ifdef CONFIG_BUSYBOX_CONFIG_FEATURE_HAVE_RPC
   TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
   export LDFLAGS=$(TARGET_LDFLAGS)
   LDLIBS += rpc
 endif
 
 define Build/Compile
-	$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
+	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		KBUILD_HAVE_NLS=no \
@@ -81,6 +88,7 @@ define Build/Compile
 		ARCH="$(ARCH)" \
 		SKIP_STRIP=y \
 		LDLIBS="$(LDLIBS)" \
+		$(BB_MAKE_VERBOSE) \
 		all
 	rm -rf $(PKG_INSTALL_DIR)
 	$(FIND) $(PKG_BUILD_DIR) -lname "*busybox" -exec rm \{\} \;
@@ -91,6 +99,7 @@ define Build/Compile
 		ARCH="$(ARCH)" \
 		CONFIG_PREFIX="$(PKG_INSTALL_DIR)" \
 		LDLIBS="$(LDLIBS)" \
+		$(BB_MAKE_VERBOSE) \
 		install
 endef
 

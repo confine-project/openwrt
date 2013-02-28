@@ -1,30 +1,34 @@
-From 01108f66fd20dcdbb9fde0dd00924ee4e8c28a7c Mon Sep 17 00:00:00 2001
-From: John Crispin <blogic@openwrt.org>
-Date: Sat, 28 Jan 2012 21:41:18 +0100
-Subject: [PATCH 1/3] configure fixup
-
----
- pjproject-1.12/aconfigure.ac                |   13 +++++++++++--
- pjproject-1.12/pjmedia/build/os-auto.mak.in |    9 ++++++++-
- 2 files changed, 19 insertions(+), 3 deletions(-)
-
-diff --git a/aconfigure.ac b/aconfigure.ac
-index 84295b5..e34fd32 100644
---- a/aconfigure.ac
-+++ b/aconfigure.ac
-@@ -48,9 +48,9 @@ if test -z "$CROSS_COMPILE"; then
+Index: pjproject-1.14.2/aconfigure.ac
+===================================================================
+--- pjproject-1.14.2.orig/aconfigure.ac	2012-04-27 03:22:15.000000000 +0200
++++ pjproject-1.14.2/aconfigure.ac	2012-08-13 14:42:33.204641678 +0200
+@@ -48,9 +48,8 @@
      CROSS_COMPILE=`echo ${CC} | sed 's/gcc//'`
  fi
  
 -if test "$AR" = ""; then AR="${CROSS_COMPILE}ar rv"; fi
-+AR="${CROSS_COMPILE}ar rv"
++AR="${AR} rv"
  AC_SUBST(AR)
 -if test "$LD" = ""; then LD="$CC"; fi
-+LD="${CROSS_COMPILE}gcc"
  AC_SUBST(LD)
  if test "$LDOUT" = ""; then LDOUT="-o "; fi
  AC_SUBST(LDOUT)
-@@ -604,6 +604,15 @@ AC_ARG_ENABLE(ext_sound,
+@@ -584,13 +583,7 @@
+ 	;;
+   *)
+ 	dnl # Check if ALSA is available
+-	ac_pjmedia_snd=pa_unix
+-	AC_CHECK_HEADER(alsa/version.h,
+-			[AC_SUBST(ac_pa_use_alsa,1)
+-			 LIBS="$LIBS -lasound"
+-			],
+-		        [AC_SUBST(ac_pa_use_alsa,0)])
+-	AC_MSG_RESULT([Checking sound device backend... unix])
++        AC_SUBST(ac_pa_use_alsa,0)
+ 
+ 	dnl # Check if OSS is disabled
+ 	AC_SUBST(ac_pa_use_oss,1)
+@@ -617,6 +610,15 @@
  	       fi]
  	      )
  
@@ -40,11 +44,26 @@ index 84295b5..e34fd32 100644
  dnl # Include resampling small filter
  AC_SUBST(ac_no_small_filter)
  AC_ARG_ENABLE(small-filter,
-diff --git a/pjmedia/build/os-auto.mak.in b/pjmedia/build/os-auto.mak.in
-index 145f1d5..be38aeb 100644
---- a/pjmedia/build/os-auto.mak.in
-+++ b/pjmedia/build/os-auto.mak.in
-@@ -125,4 +125,11 @@ ifeq ($(AC_PJMEDIA_SND),external)
+@@ -737,14 +739,6 @@
+ 	      AC_MSG_RESULT([Checking if iLBC codec is disabled...no]))
+ 
+ dnl # Include libsamplerate
+-AC_ARG_ENABLE(libsamplerate,
+-	      AC_HELP_STRING([--enable-libsamplerate],
+-			     [Link with libsamplerate when available. Note that PJMEDIA_RESAMPLE_IMP must also be configured]),
+-	      [ AC_CHECK_LIB(samplerate,src_new) ],
+-	      AC_MSG_RESULT([Skipping libsamplerate detection])
+-	     )
+-
+-dnl # Include libsamplerate
+ AC_SUBST(ac_resample_dll)
+ AC_ARG_ENABLE(resample_dll,
+ 	      AC_HELP_STRING([--enable-resample-dll],
+Index: pjproject-1.14.2/pjmedia/build/os-auto.mak.in
+===================================================================
+--- pjproject-1.14.2.orig/pjmedia/build/os-auto.mak.in	2011-10-14 06:15:15.000000000 +0200
++++ pjproject-1.14.2/pjmedia/build/os-auto.mak.in	2012-08-13 14:40:47.680637171 +0200
+@@ -125,4 +125,11 @@
  export CFLAGS += -DPJMEDIA_AUDIO_DEV_HAS_PORTAUDIO=0 -DPJMEDIA_AUDIO_DEV_HAS_WMME=0
  endif
  
@@ -57,6 +76,3 @@ index 145f1d5..be38aeb 100644
 +export PJMEDIA_AUDIODEV_OBJS += tapi_dev.o
 +export CFLAGS += -DPJMEDIA_AUDIO_DEV_HAS_TAPI_DEVICE=1
 +endif
--- 
-1.7.7.1
-

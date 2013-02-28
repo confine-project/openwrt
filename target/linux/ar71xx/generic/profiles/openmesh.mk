@@ -6,13 +6,24 @@
 #
 
 define Profile/OM2P
-	NAME:=OpenMesh OM2P
+	NAME:=OpenMesh OM2P/OM2P-HS/OM2P-LC
 	PACKAGES:=kmod-ath9k om-watchdog
 endef
 
 define Profile/OM2P/Description
-	Package set optimized for the OpenMesh OM2P.
+	Package set optimized for the OpenMesh OM2P/OM2P-HS/OM2P-LC.
 endef
 
 $(eval $(call Profile,OM2P))
+
+define Profile/MR600
+        NAME:=OpenMesh MR600
+        PACKAGES:=kmod-ath9k om-watchdog
+endef
+
+define Profile/MR600/Description
+        Package set optimized for the OpenMesh MR600.
+endef
+
+$(eval $(call Profile,MR600))
 

@@ -16,13 +16,14 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_MD5SUM:=d8eee8cba0edb28974cc1f8532e3bd18
 PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources
 
+include $(INCLUDE_DIR)/ltqtapi.mk
 include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/ltq-vmmc
   SUBMENU:=Voice over IP
   TITLE:=TAPI LL driver for Voice Macro
   URL:=http://www.lantiq.com/
-  DEPENDS:=+kmod-ltq-tapi @(TARGET_lantiq_danube||TARGET_lantiq_falcon||TARGET_lantiq_falcon_stable)
+  DEPENDS:=$(LTQ_TAPI_TARGET) +kmod-ltq-tapi
   FILES:=$(PKG_BUILD_DIR)/src/drv_vmmc.ko
   AUTOLOAD:=$(call AutoLoad,25,drv_vmmc)
   MAINTAINER:=John Crispin <blogic@openwrt.org>
@@ -67,7 +68,10 @@ COEF_FILE:=coef_voip_ifx.tar.gz
 
 FW_DIR:=lib/firmware
 
-ifeq ($(CONFIG_VOICE_CPE_VMMC_WITH_DEVICE_DANUBE),y)
+FW_TARGET_GENERIC:=$(FW_TARGET)
+COEF_TARGET_GENERIC:=$(COEF_TARGET)
+
+ifeq ($(CONFIG_VOICE_CPE_VMMC_WITH_DEVICE_DANUBE)$(CONFIG_LTQ_VOICE_CPE_VMMC_WITH_DEVICE_DANUBE),y)
   CONFIGURE_ARGS += --with-device=DANUBE
   FW_SOURCE:=voip_R12.1.0.1.0-enc.bin
   FW_TARGET:=danube_firmware.bin
@@ -154,7 +158,9 @@ define KernelPackage/ltq-vmmc/install
 	$(INSTALL_DIR) $(1)/etc/init.d $(1)/$(FW_DIR)
 	$(INSTALL_BIN) ./files/vmmc.init $(1)/etc/init.d/vmmc
 	$(CP) $(PKG_BUILD_DIR)/firmware/$(FW_SOURCE) $(1)/$(FW_DIR)/$(FW_TARGET)
+	ln -s /$(FW_DIR)/$(FW_TARGET) $(1)/$(FW_DIR)/$(FW_TARGET_GENERIC)
 	$(CP) $(PKG_BUILD_DIR)/coef/$(COEF_SRC) $(1)/$(FW_DIR)/$(COEF_TARGET)
+	ln -s /$(FW_DIR)/$(COEF_TARGET) $(1)/$(FW_DIR)/$(COEF_TARGET_GENERIC)
 endef
 
 $(eval $(call KernelPackage,ltq-vmmc))

@@ -101,8 +101,9 @@ static void __init hornet_ub_gpio_setup(void)
 	t |= AR933X_BOOTSTRAP_MDIO_GPIO_EN;
 	ath79_reset_wr(AR933X_RESET_REG_BOOTSTRAP, t);
 
-	gpio_request(HORNET_UB_GPIO_USB_POWER, "USB power");
-	gpio_direction_output(HORNET_UB_GPIO_USB_POWER, 1);
+	gpio_request_one(HORNET_UB_GPIO_USB_POWER,
+			 GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
+			 "USB power");
 }
 
 static void __init hornet_ub_setup(void)

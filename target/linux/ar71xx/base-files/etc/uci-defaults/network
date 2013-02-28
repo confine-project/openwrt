@@ -15,12 +15,16 @@ ucidef_set_interface_loopback
 board=$(ar71xx_board_name)
 
 case "$board" in
+all0315n |\
 all0258n |\
-ja76pf2)
+ja76pf2|\
+ubnt-unifi-outdoor)
 	ucidef_set_interface_lan "eth0 eth1"
 	;;
 
-db120)
+db120 |\
+rb-2011l | \
+rb-2011uas-2hnd)
 	ucidef_set_interfaces_lan_wan "eth0.1 eth1" "eth0.2"
 	ucidef_add_switch "eth0" "1" "1"
 	ucidef_add_switch_vlan "eth0" "1" "0t 2 3 4 5"
@@ -49,6 +53,12 @@ rb-433u)
 	ucidef_add_switch_vlan "switch0" "1" "1 2 5"
 	;;
 
+rb-435g)
+	ucidef_set_interfaces_lan_wan "eth1" "eth0"
+	ucidef_add_switch "switch0" "1" "1"
+	ucidef_add_switch_vlan "switch0" "1" "0 1 2"
+	;;
+
 rb-450)
 	ucidef_set_interfaces_lan_wan "eth1" "eth0"
 	ucidef_add_switch "eth1" "1" "1"
@@ -62,7 +72,9 @@ routerstation-pro)
 	ucidef_add_switch_vlan "switch0" "1" "0 1 2 3 4"
 	;;
 
+ap136 |\
 rb-750gl |\
+rb-751g |\
 wzr-hp-g450h)
 	ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
 	ucidef_add_switch "switch0" "1" "1"
@@ -88,6 +100,14 @@ ap113)
 	ucidef_add_switch_vlan "eth0" "2" "0t 2"
 	;;
 
+tl-wdr4300|\
+tl-wr1041n-v2)
+	ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
+	ucidef_add_switch "eth0" "1" "1"
+	ucidef_add_switch_vlan "eth0" "1" "0t 2 3 4 5"
+	ucidef_add_switch_vlan "eth0" "2" "0t 1"
+	;;
+
 tl-wr1043nd)
 	ucidef_set_interfaces_lan_wan "eth0.1" "eth0.2"
 	ucidef_add_switch "rtl8366rb" "1" "1"
@@ -108,6 +128,12 @@ tl-wr941nd)
 	ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4" "wan"
 	;;
 
+tl-wr841n-v8)
+	ucidef_set_interfaces_lan_wan "eth1" "eth0"
+	ucidef_add_switch "switch0" "1" "1"
+	ucidef_add_switch_vlan "switch0" "1" "0 1 2 3 4"
+	;;
+
 wrt160nl)
 	ucidef_set_interfaces_lan_wan "eth0" "eth1"
 	ucidef_add_switch "eth0" "1" "1"
@@ -120,12 +146,16 @@ wzr-hp-g300nh)
 	ucidef_add_switch_vlan "switch0" "1" "0 1 2 3 5t"
 	;;
 
+all0305 |\
 aw-nr580 |\
 bullet-m |\
+cap4200ag |\
 eap7660d |\
+mr600 |\
 rb-411 |\
 tl-mr11u |\
 tl-mr3020 |\
+tl-mr3040 |\
 tl-wa901nd |\
 tl-wa901nd-v2 |\
 tl-wr703n |\
@@ -153,7 +183,9 @@ dir-615-c1 |\
 dir-615-e4 |\
 ja76pf |\
 rb-750 |\
+rb-751 |\
 tew-632brp |\
+tew-712br |\
 tl-mr3220 |\
 tl-mr3420 |\
 tl-wr741nd |\
@@ -173,6 +205,18 @@ wzr-hp-g450h)
 	ucidef_add_switch "eth0" "1" "1"
 	ucidef_add_switch_vlan "eth0" "1" "0t 2 3 4 5"
 	ucidef_add_switch_vlan "eth0" "2" "0t 1"
+	;;
+
+ew-dorin)
+	ucidef_set_interface_lan "eth0"
+	ucidef_add_switch "eth0" "1" "1"
+	ucidef_add_switch_vlan "eth0" "1" "0 1 2 3"
+	;;
+
+ew-dorin-router)
+	ucidef_set_interfaces_lan_wan "eth0" "eth1"
+	ucidef_add_switch "eth0" "1" "1"
+	ucidef_add_switch_vlan "eth0" "1" "0 2 3"
 	;;
 
 *)

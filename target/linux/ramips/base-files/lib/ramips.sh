@@ -47,11 +47,32 @@ ramips_board_name() {
 	machine=$(awk 'BEGIN{FS="[ \t]+:[ \t]"} /machine/ {print $2}' /proc/cpuinfo)
 
 	case "$machine" in
+	*"8devices Carambola")
+		name="carambola"
+		;;
+	*"Edimax 3g-6200n")
+		name="3g-6200n"
+		;;
+	*"Allnet ALL0239-3G")
+		name="all0239-3g"
+		;;
 	*"Allnet ALL0256N")
 		name="all0256n"
 		;;
+	*"Allnet ALL5002")
+		name="all5002"
+		;;
+	*"ARC FreeStation5")
+		name="freestation5"
+		;;
 	*"Argus ATP-52B")
 		name="argus-atp52b"
+		;;
+	*"Asus WL-330N")
+		name="wl-330n"
+		;;
+	*"Asus WL-330N3G")
+		name="wl-330n3g"
 		;;
 	*"Aztech HW550-3G")
 		name="hw550-3g"
@@ -65,6 +86,21 @@ ramips_board_name() {
 	*"DIR-600 B2")
 		name="dir-600-b2"
 		;;
+	*"DIR-620 A1")
+		name="dir-620-a1"
+		;;
+	*"DIR-615 H1")
+		name="dir-615-h1"
+		;;
+	*"DIR-615 D")
+		name="dir-615-d"
+		;;
+	*"DIR-645")
+		name="dir-645"
+		;;
+        *"DAP-1350")
+                name="dap-1350"
+                ;;
 	*"ESR-9753")
 		name="esr-9753"
 		;;
@@ -91,6 +127,9 @@ ramips_board_name() {
 		;;
 	*"Omnima MiniEMBWiFi")
 		name="omni-emb"
+		;;
+	*"Petatel PSR-680W"*)
+		name="psr-680w"
 		;;
 	*"PWH2004")
 		name="pwh2004"
@@ -128,6 +167,15 @@ ramips_board_name() {
 	*"Sitecom WL-351 v1 002")
 		name="wl-351"
 		;;
+	*"Tenda W306R V2.0")
+		name="w306r-v20"
+		;;
+	*"TEW-691GR")
+		name="tew-691gr"
+		;;
+	*"TEW-692GR")
+		name="tew-692gr"
+		;;
 	*"Ralink V11ST-FE")
 		name="v11st-fe"
 		;;
@@ -139,6 +187,9 @@ ramips_board_name() {
 		;;
 	*"WR512-3GN-like router")
 		name="wr512-3gn"
+		;;
+	*"UR-336UN Wireless N router")
+		name="ur-336un"
 		;;
 	*"AWB WR6202")
 		name="wr6202"

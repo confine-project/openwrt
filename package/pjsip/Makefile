@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010-2011 OpenWrt.org
+# Copyright (C) 2010-2012 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,19 +8,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=pjsip
-PKG_VERSION:=1.12
+PKG_VERSION:=1.14.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=pjproject-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=http://www.pjsip.org/release/$(PKG_VERSION)/
-PKG_MD5SUM:=1db8e5a5dd73b216409b15afa34651a4
+PKG_MD5SUM:=05428502384c16e7abd85f047e6e2f6c
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/pjproject-$(PKG_VERSION)
 
-PKG_BUILD_DEPENDS:=TARGET_lantiq:kmod-ltq-tapi TARGET_lantiq:kmod-ltq-vmmc
+include $(INCLUDE_DIR)/ltqtapi.mk
+PKG_BUILD_DEPENDS:=$(LTQ_TAPI_BUILD_DEPENDS)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -70,7 +71,7 @@ EXTRA_CFLAGS:=-I$(STAGING_DIR)/usr/include/drv_tapi -I$(STAGING_DIR)/usr/include
 endif
 
 Package/pjsip-oss=$(call Package/pjsip-template,oss,BROKEN)
-Package/pjsip-ltq-tapi=$(call Package/pjsip-template,ltq-tapi,@TARGET_lantiq +TARGET_lantiq:kmod-ltq-tapi +TARGET_lantiq:kmod-ltq-vmmc)
+Package/pjsip-ltq-tapi=$(call Package/pjsip-template,ltq-tapi,$(LTQ_TAPI_DEPENDS))
 
 USE_LOCAL=$(shell ls ./src/ 2>/dev/null >/dev/null && echo 1)
 ifneq ($(USE_LOCAL),)
@@ -85,19 +86,15 @@ define Build/Configure
 endef
 
 define Build/Compile
-	CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)" \
+	+CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)" \
 	CXXFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS) $(TARGET_CPPFLAGS) $(EXTRA_CPPFLAGS)" \
-	LDFLAGS="$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS) $(LIBGCC_S) -lm" \
+	LDFLAGS="$(TARGET_LDFLAGS) -lc $(LIBGCC_S) -lm" \
 		$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR)/$(MAKE_PATH)
 endef
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr
 	$(CP) $(PKG_INSTALL_DIR)/usr/pjsip-$(BUILD_VARIANT) $(1)/usr
-endef
-
-define Package/pjsip-$(BUILD_VARIANT)/install
-	echo "foo"
 endef
 
 $(eval $(call BuildPackage,pjsip-oss))

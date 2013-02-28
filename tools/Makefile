@@ -16,14 +16,19 @@ endif
 tools-y += m4 libtool autoconf automake flex bison pkg-config sed mklibs
 tools-y += sstrip ipkg-utils genext2fs e2fsprogs mtd-utils mkimage
 tools-y += firmware-utils patch-cmdline quilt yaffs2 flock padjffs2
-tools-y += mm-macros xorg-macros xfce-macros missing-macros xz cmake
+tools-y += mm-macros xorg-macros xfce-macros missing-macros xz cmake scons
 tools-$(CONFIG_TARGET_orion_generic) += wrt350nv2-builder upslug2
 tools-$(CONFIG_powerpc) += upx
 tools-$(CONFIG_TARGET_x86) += qemu
+tools-$(CONFIG_TARGET_brcm2708) += mtools dosfstools
 ifneq ($(CONFIG_TARGET_ar71xx),)
 tools-y += lzma-old squashfs
 endif
 tools-y += lzma squashfs4
+
+ifneq ($(CONFIG_PACKAGE_firmwarehotplug),)
+tools-y += sdcc
+endif
 
 ifdef CONFIG_GCC_USE_GRAPHITE
   ifeq ($(CONFIG_GCC_USE_SYSTEM_PPL_CLOOG),)
@@ -34,6 +39,7 @@ endif
 
 # builddir dependencies
 $(curdir)/bison/compile := $(curdir)/flex/install
+$(curdir)/flex/compile := $(curdir)/m4/install
 $(curdir)/pkg-config/compile := $(curdir)/sed/install
 $(curdir)/libtool/compile := $(curdir)/sed/install
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/install
@@ -41,7 +47,7 @@ $(curdir)/squashfs4/compile := $(curdir)/xz/install
 $(curdir)/quilt/compile := $(curdir)/sed/install $(curdir)/autoconf/install
 $(curdir)/dtc/compile := $(curdir)/bison/install
 $(curdir)/autoconf/compile := $(curdir)/m4/install $(curdir)/libtool/install
-$(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkg-config/install
+$(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkg-config/install $(curdir)/xz/install
 $(curdir)/gmp/compile := $(curdir)/automake/install
 $(curdir)/mpc/compile := $(curdir)/mpfr/install $(curdir)/gmp/install
 $(curdir)/mpfr/compile := $(curdir)/gmp/install
@@ -57,6 +63,7 @@ $(curdir)/xfce-macros/compile := $(curdir)/automake/install
 $(curdir)/missing-macros/compile := $(curdir)/automake/install
 $(curdir)/e2fsprogs/compile := $(curdir)/automake/install
 $(curdir)/libelf/compile := $(curdir)/automake/install
+$(curdir)/sdcc/compile := $(curdir)/bison/install
 
 ifneq ($(CONFIG_CCACHE),)
 $(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/install))
@@ -113,11 +120,12 @@ $(STAGING_DIR_HOST)/bin/stat: $(STAGING_DIR)/.prepared
 	fi
 
 $(eval $(call PrepareCommand,find,gfind find))
-$(eval $(call PrepareCommand,md5sum,md5sum $(SCRIPT_DIR)/md5sum))
+$(eval $(call PrepareCommand,md5sum,gmd5sum md5sum $(SCRIPT_DIR)/md5sum))
 $(eval $(call PrepareCommand,cp,gcp cp))
 $(eval $(call PrepareCommand,seq,gseq seq))
+$(eval $(call PrepareCommand,python,python2 python))
 
-$(curdir)/cmddeps = $(patsubst %,$(STAGING_DIR_HOST)/bin/%,find md5sum cp stat seq)
+$(curdir)/cmddeps = $(patsubst %,$(STAGING_DIR_HOST)/bin/%,find md5sum cp stat seq python)
 $(curdir)//prepare = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared $($(curdir)/cmddeps)
 $(curdir)//compile = $(STAGING_DIR)/.prepared $(STAGING_DIR_HOST)/.prepared $($(curdir)/cmddeps)
 

@@ -29,6 +29,8 @@ ifeq ($(PKG_VERSION),2.22)
   PKG_MD5SUM:=ee0f10756c84979622b992a4a61ea3f5
 endif
 
+HOST_BUILD_PARALLEL:=1
+
 PATCH_DIR:=./patches/$(PKG_VERSION)
 
 REAL_STAGING_DIR_HOST:=$(STAGING_DIR_HOST)
@@ -75,11 +77,16 @@ define Host/Configure
 endef
 
 define Host/Compile
-	$(MAKE) $(TOOLCHAIN_JOBS) -C $(HOST_BUILD_DIR) all
+	+$(MAKE) $(HOST_JOBS) -C $(HOST_BUILD_DIR) all
 endef
 
 define Host/Install
-	$(MAKE) -C $(HOST_BUILD_DIR) install
+	mkdir -p $(TOOLCHAIN_DIR)/initial
+	$(MAKE) -C $(HOST_BUILD_DIR) \
+		prefix=$(TOOLCHAIN_DIR)/initial \
+		install
+	$(call FixupLibdir,$(TOOLCHAIN_DIR)/initial)
+	$(CP) $(TOOLCHAIN_DIR)/initial/. $(TOOLCHAIN_DIR)/
 	$(CP) $(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-readelf $(REAL_STAGING_DIR_HOST)/bin/readelf
 endef
 

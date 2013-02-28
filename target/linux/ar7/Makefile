@@ -12,12 +12,11 @@ BOARDNAME:=TI AR7
 FEATURES:=squashfs jffs2 atm
 MAINTAINER:=Florian Fainelli <florian@openwrt.org>
 
-LINUX_VERSION:=2.6.37.6
+LINUX_VERSION:=3.3.8
 
 include $(INCLUDE_DIR)/target.mk
 
-DEFAULT_PACKAGES+= kmod-pppoa ppp-mod-pppoa linux-atm atm-tools br2684ctl \
-		kmod-acx-mac80211 swconfig hostapd
+DEFAULT_PACKAGES+= kmod-mac80211 kmod-acx-mac80211 swconfig wpad-mini
 
 define Target/Description
 	Build firmware images for TI AR7 based routers.

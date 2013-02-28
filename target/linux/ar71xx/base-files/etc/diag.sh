@@ -33,6 +33,12 @@ get_status_led() {
 	alfa-nx)
 		status_led="alfa:green:led_8"
 		;;
+	all0305)
+		status_led="eap7660d:green:ds4"
+		;;
+	ap136)
+		status_led="ap136:green:status"
+		;;
 	ap81)
 		status_led="ap81:green:status"
 		;;
@@ -47,6 +53,9 @@ get_status_led() {
 		;;
 	bullet-m | rocket-m | nano-m | nanostation-m)
 		status_led="ubnt:green:link4"
+		;;
+	cap4200ag)
+		status_led="senao:green:pwr"
 		;;
 	db120)
 		status_led="db120:green:status"
@@ -74,6 +83,9 @@ get_status_led() {
 	ls-sr71)
 		status_led="ubnt:green:d22"
 		;;
+	mr600)
+		status_led="mr600:orange:power"
+		;;
 	mzk-w04nu | \
 	mzk-w300nh)
 		status_led="planex:green:status"
@@ -81,7 +93,9 @@ get_status_led() {
 	nbg460n_550n_550nh)
 		status_led="nbg460n:green:power"
 		;;
-	om2p)
+	om2p | \
+	om2p-hs | \
+	om2p-lc)
 		status_led="om2p:blue:power"
 		;;
 	pb44)
@@ -90,6 +104,9 @@ get_status_led() {
 	rb-411 | rb-411u | rb-433 | rb-433u | rb-450 | rb-450g | rb-493)
 		status_led="rb4xx:yellow:user"
 		;;
+       rb-750)
+               status_led="rb750:green:act"
+               ;;
 	routerstation | routerstation-pro)
 		status_led="ubnt:green:rf"
 		;;
@@ -102,6 +119,9 @@ get_status_led() {
 	tew-673gru)
 		status_led="trendnet:blue:wps"
 		;;
+	tew-712br)
+		status_led="trendnet:green:power"
+		;;
 	tl-mr3020)
 		status_led="tp-link:green:wps"
 		;;
@@ -109,14 +129,17 @@ get_status_led() {
 	tl-mr3420 | \
 	tl-wa901nd | \
 	tl-wa901nd-v2 | \
+	tl-wr1041n-v2 | \
 	tl-wr1043nd | \
 	tl-wr741nd | \
 	tl-wr741nd-v4 | \
 	tl-wr841n-v1 | \
 	tl-wr841n-v7 | \
+	tl-wr841n-v8 | \
 	tl-wr941nd)
 		status_led="tp-link:green:system"
 		;;
+	tl-wdr4300 | \
 	tl-wr703n)
 		status_led="tp-link:blue:system"
 		;;
@@ -132,6 +155,10 @@ get_status_led() {
 	wzr-hp-g300nh)
 		status_led="buffalo:green:router"
 		;;
+	wlae-ag300n)
+		status_led="buffalo:green:status"
+		;;
+	wzr-hp-ag300h | \
 	wzr-hp-g300nh2)
 		status_led="buffalo:red:diag"
 		;;
@@ -162,6 +189,8 @@ set_state() {
 	case "$1" in
 	preinit)
 		insmod leds-gpio
+		insmod ledtrig-default-on
+		insmod ledtrig-timer
 		status_led_set_timer 200 200
 		;;
 	failsafe)

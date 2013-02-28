@@ -48,7 +48,7 @@ system_config() {
 }
 
 apply_uci_config() {
-	sh -c '. /etc/functions.sh; include /lib/config; uci_apply_defaults'
+	sh -c '. /lib/functions.sh; include /lib/config; uci_apply_defaults'
 }
 
 start() {
@@ -70,6 +70,9 @@ start() {
 	[ "$FAILSAFE" = "true" ] && touch /tmp/.failsafe
 
 	load_modules /etc/modules.d/*
+
+	# allow wifi modules time to settle
+	sleep 1
 
 	/sbin/wifi detect > /tmp/wireless.tmp
 	[ -s /tmp/wireless.tmp ] && {
