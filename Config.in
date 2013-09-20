@@ -440,6 +440,8 @@ menu "Global build settings"
 		select KERNEL_NET_NS
 		select KERNEL_DEVPTS_MULTIPLE_INSTANCES
 
+	config KERNEL_RELAY
+		bool
 
 	comment "Package build options"
 
