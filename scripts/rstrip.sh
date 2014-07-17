@@ -20,10 +20,6 @@ TARGETS=$*
   exit 1
 }
 
-[ "${CONFIG_DEBUG}" = "y" ] && {
-  exit 0
-}
-
 find $TARGETS -type f -a -exec file {} \; | \
   sed -n -e 's/^\(.*\):.*ELF.*\(executable\|relocatable\|shared object\).*,.* stripped/\1:\2/p' | \
 (
