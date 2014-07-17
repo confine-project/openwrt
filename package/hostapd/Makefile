@@ -8,16 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_VERSION:=20120910
+PKG_VERSION:=20131120
 PKG_RELEASE:=1
-PKG_REV:=762b99db7a76803d1ad274e87caa6fe870d47441
+PKG_REV:=594516b4c28a94ca686b17f1e463dfd6712b75a7
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=git://w1.fi/srv/git/hostap.git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE_PROTO:=git
-PKG_MIRROR_MD5SUM:=fa3227c146cb50732fe8511ce6d1d862
+# PKG_MIRROR_MD5SUM:=4e7c1f97edd7514535056fce54ae053a
+
+PKG_MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 
 PKG_BUILD_PARALLEL:=1
 
@@ -84,15 +86,14 @@ ifneq ($(LOCAL_TYPE),hostapd)
 	CONFIG_DRIVER_ROBOSWITCH=$(CONFIG_PACKAGE_kmod-switch)
 endif
 
-DRV_DEPENDS:=+PACKAGE_kmod-mac80211:libnl-tiny @(!(TARGET_avr32||TARGET_etrax)||BROKEN)
+DRV_DEPENDS:=+PACKAGE_kmod-mac80211:libnl-tiny @(!TARGET_avr32||BROKEN)
 
 define Package/hostapd/Default
   SECTION:=net
   CATEGORY:=Network
   TITLE:=IEEE 802.1x Authenticator
   URL:=http://hostap.epitest.fi/
-  DEPENDS:=$(DRV_DEPENDS)
-  MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
+  DEPENDS:=$(DRV_DEPENDS) +libubus
 endef
 
 define Package/hostapd
@@ -132,13 +133,12 @@ define Package/wpad/Default
   CATEGORY:=Network
   TITLE:=IEEE 802.1x Authenticator/Supplicant
   URL:=http://hostap.epitest.fi/
-  MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 endef
 
 define Package/wpad
 $(call Package/wpad/Default)
   TITLE+= (full)
-  DEPENDS:=$(DRV_DEPENDS) +WPA_SUPPLICANT_OPENSSL:libopenssl
+  DEPENDS:=$(DRV_DEPENDS) +WPA_SUPPLICANT_OPENSSL:libopenssl +libubus
   VARIANT:=wpad-full
 endef
 
@@ -150,7 +150,7 @@ endef
 define Package/wpad-mini
 $(call Package/wpad/Default)
   TITLE+= (WPA-PSK only)
-  DEPENDS:=$(DRV_DEPENDS)
+  DEPENDS:=$(DRV_DEPENDS) +libubus
   VARIANT:=wpad-mini
 endef
 
@@ -165,7 +165,6 @@ define Package/wpa-supplicant
   URL:=http://hostap.epitest.fi/wpa_supplicant/
   DEPENDS:=$(DRV_DEPENDS) +WPA_SUPPLICANT_OPENSSL:libopenssl
   VARIANT:=supplicant-full
-  MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 endef
 
 define Package/wpa-supplicant/Description
@@ -174,6 +173,17 @@ endef
 
 define Package/wpa-supplicant/config
 	source "$(SOURCE)/Config.in"
+endef
+
+define Package/wpa-supplicant-p2p
+  $(Package/wpa-supplicant)
+  TITLE:=WPA Supplicant (with Wi-Fi P2P support)
+  DEPENDS:=$(DRV_DEPENDS)
+  VARIANT:=supplicant-p2p
+endef
+
+define Package/wpa-supplicant-p2p/Description
+  WPA Supplicant (with Wi-Fi P2P support)
 endef
 
 define Package/wpa-supplicant-mini
@@ -190,15 +200,13 @@ endef
 define Package/wpa-cli
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=@PACKAGE_wpa-supplicant||PACKAGE_wpad-mini||PACKAGE_wpad
+  DEPENDS:=@PACKAGE_wpa-supplicant||PACKAGE_wpa-supplicant-p2p||PACKAGE_wpad-mini||PACKAGE_wpad
   TITLE:=WPA Supplicant command line interface
-  MAINTAINER:=Felix Fietkau <nbd@openwrt.org>
 endef
 
 define Package/wpa-cli/Description
   WPA Supplicant control utility
 endef
-
 
 ifneq ($(wildcard $(PKG_BUILD_DIR)/.config_*),$(subst .configured_,.config_,$(STAMP_CONFIGURED)))
   define Build/Configure/rebuild
@@ -212,7 +220,9 @@ endif
 
 define Build/Configure
 	$(Build/Configure/rebuild)
-	$(CP) ./files/hostapd-$(LOCAL_VARIANT).config $(PKG_BUILD_DIR)/hostapd/.config
+	$(if $(wildcard ./files/hostapd-$(LOCAL_VARIANT).config), \
+		$(CP) ./files/hostapd-$(LOCAL_VARIANT).config $(PKG_BUILD_DIR)/hostapd/.config \
+	)
 	$(CP) ./files/wpa_supplicant-$(LOCAL_VARIANT).config $(PKG_BUILD_DIR)/wpa_supplicant/.config
 endef
 
@@ -220,13 +230,16 @@ TARGET_CPPFLAGS := \
 	-I$(STAGING_DIR)/usr/include/libnl-tiny \
 	-I$(PKG_BUILD_DIR)/src/crypto \
 	$(TARGET_CPPFLAGS) \
-	-I$(STAGING_DIR)/usr/include/madwifi \
+	-I$(CURDIR)/madwifi \
 	-DCONFIG_LIBNL20 \
 	-D_GNU_SOURCE \
 	$(if $(CONFIG_WPA_MSG_MIN_PRIORITY),-DCONFIG_MSG_MIN_PRIORITY=$(CONFIG_WPA_MSG_MIN_PRIORITY))
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections
 TARGET_LDFLAGS += -Wl,--gc-sections
+ifeq ($(findstring supplicant,$(BUILD_VARIANT)),)
+  TARGET_LDFLAGS += -lubox -lubus
+endif
 
 ifdef CONFIG_PACKAGE_kmod-mac80211
   TARGET_LDFLAGS += -lm -lnl-tiny
@@ -238,6 +251,7 @@ define Build/RunMake
 		$(TARGET_CONFIGURE_OPTS) \
 		$(DRIVER_MAKEOPTS) \
 		LIBS="$(TARGET_LDFLAGS)" \
+		LIBS_c="" \
 		BCHECK= \
 		$(2)
 endef
@@ -302,9 +316,9 @@ Package/hostapd-mini/install = $(Package/hostapd/install)
 
 ifneq ($(LOCAL_TYPE),supplicant)
   define Package/hostapd-utils/install
-	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/hotplug.d/button
+	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/rc.button
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/hostapd/hostapd_cli $(1)/usr/sbin/
-	$(INSTALL_DATA) ./files/wps-hotplug.sh $(1)/etc/hotplug.d/button/50-wps
+	$(INSTALL_BIN) ./files/wps-hotplug.sh $(1)/etc/rc.button/wps
   endef
 endif
 
@@ -322,6 +336,7 @@ define Package/wpa-supplicant/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/wpa_supplicant/wpa_supplicant $(1)/usr/sbin/
 endef
 Package/wpa-supplicant-mini/install = $(Package/wpa-supplicant/install)
+Package/wpa-supplicant-p2p/install = $(Package/wpa-supplicant/install)
 
 ifneq ($(LOCAL_TYPE),hostapd)
   define Package/wpa-cli/install
@@ -336,5 +351,6 @@ $(eval $(call BuildPackage,wpad))
 $(eval $(call BuildPackage,wpad-mini))
 $(eval $(call BuildPackage,wpa-supplicant))
 $(eval $(call BuildPackage,wpa-supplicant-mini))
+$(eval $(call BuildPackage,wpa-supplicant-p2p))
 $(eval $(call BuildPackage,wpa-cli))
 $(eval $(call BuildPackage,hostapd-utils))
