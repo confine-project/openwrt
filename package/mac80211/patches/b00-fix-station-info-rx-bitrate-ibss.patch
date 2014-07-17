@@ -1,0 +1,14 @@
+Index: compat-wireless-2014-01-23.1/net/mac80211/rx.c
+===================================================================
+--- compat-wireless-2014-01-23.1.orig/net/mac80211/rx.c	2014-04-30 13:23:37.635421888 +0200
++++ compat-wireless-2014-01-23.1/net/mac80211/rx.c	2014-04-30 13:25:38.054287899 +0200
+@@ -1402,7 +1402,8 @@
+ 		if (ether_addr_equal(bssid, rx->sdata->u.ibss.bssid) &&
+ 		    test_sta_flag(sta, WLAN_STA_AUTHORIZED)) {
+ 			sta->last_rx = jiffies;
+-			if (ieee80211_is_data(hdr->frame_control)) {
++			if (ieee80211_is_data(hdr->frame_control) &&
++			    !is_multicast_ether_addr(hdr->addr1)) {
+ 				sta->last_rx_rate_idx = status->rate_idx;
+ 				sta->last_rx_rate_flag = status->flag;
+ 				sta->last_rx_rate_vht_nss = status->vht_nss;
