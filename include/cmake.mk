@@ -55,7 +55,7 @@ define Build/Configure/Default
 			-DCMAKE_STRIP=: \
 			-DCMAKE_INSTALL_PREFIX=/usr \
 			-DDL_LIBRARY=$(STAGING_DIR) \
-                        -DCMAKE_PREFIX_PATH=$(STAGING_DIR) \
+                        -DCMAKE_PREFIX_PATH=$(STAGING_DIR)/usr \
 			$(CMAKE_OPTIONS) \
 		$(CMAKE_SOURCE_DIR) \
 	)
